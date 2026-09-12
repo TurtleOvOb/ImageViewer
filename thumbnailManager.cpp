@@ -42,6 +42,16 @@ MyLabel* thumbnailManager::get_thumbnail(const int&id) const
 	
 }
 
+int thumbnailManager::get_curId()
+{
+	return this->curId;
+}
+
+int thumbnailManager::get_count()
+{
+	return this->count;
+}
+
 void thumbnailManager::setCurid( int id)
 {
 	this->curId = id;

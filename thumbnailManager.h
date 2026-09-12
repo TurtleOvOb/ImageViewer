@@ -9,6 +9,8 @@ public:
 	~thumbnailManager();
 	MyLabel* create_Thumbnail(QWidget*parent,QString filePath);
 	MyLabel* get_thumbnail(const int &id)const;
+	int get_curId();
+	int get_count();
 	void setCurid(int id);
 	//bool delete_Thumbnail();
 private:

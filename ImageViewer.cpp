@@ -49,6 +49,30 @@ void ImageViewer::switchImage(int id)
     manager->setCurid(id);
     view->setPixmap(manager->get_thumbnail(id)->pixmap());
 }
+void ImageViewer::on_btnLast_clicked()
+{
+    int lastId = manager->get_curId() - 1;
+    if (lastId <0) {
+        qDebug() << "已经是第一张";
+        return;
+    }
+    else {
+        switchImage(lastId);
+    }
+
+}
+void ImageViewer::on_btnNext_clicked()
+{
+    int nextId = manager->get_curId()+1;
+    if (nextId >= manager->get_count()) {
+        qDebug() << "已经是最后一张";
+        return;
+    }
+    else {
+        switchImage(nextId);
+    }
+
+}
 //从文件夹中添加图片
 void ImageViewer::selectFolder() {
     QString folderPath = QFileDialog::getExistingDirectory(this,"选择文件夹","D:/");

@@ -32,5 +32,7 @@ private:
 private slots:
     void selectFolder();
     void switchImage(int id);
+    void on_btnLast_clicked();
+    void on_btnNext_clicked();
 };
 
