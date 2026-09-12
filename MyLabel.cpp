@@ -18,7 +18,7 @@ void MyLabel::setId(int id)
 	this->id = id;
 }
 
-QPixmap MyLabel::pixmap()
+QPixmap& MyLabel::pixmap()
 {
 	return pix;
 }

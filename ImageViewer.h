@@ -31,6 +31,6 @@ private:
     Ui::ImageViewerClass *ui;
 private slots:
     void selectFolder();
-    void switchImage(int &id);
+    void switchImage(int id);
 };
 

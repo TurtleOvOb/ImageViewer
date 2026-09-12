@@ -9,7 +9,7 @@ public:
 	MyGraphicsView(QWidget*parent);
 
 	~MyGraphicsView();
-	void setPixmap(QPixmap pixmap);
+	void setPixmap(const QPixmap &pixmap);
 private:
 	bool isFirstLoad = true;
 	float scaleFactor = 1.1;

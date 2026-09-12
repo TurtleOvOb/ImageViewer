@@ -35,15 +35,15 @@ void ImageViewer::addPics(QFileInfo fileInfo)
     }
 }
 //槽函数：切换workSpace显示的图片
-void ImageViewer::switchImage(int& id)
+void ImageViewer::switchImage(int id)
 {
     if (view) {
-        qDebug() << "移除view";
+        //qDebug() << "移除view";
         ui->verticalLayout_4->removeWidget(view);
         delete view;
         view = nullptr;
      }
-    qDebug() << "添加view";
+    /*qDebug() << "添加view";*/
     view = new MyGraphicsView(this);
     ui->verticalLayout_4->addWidget(view);
     manager->setCurid(id);

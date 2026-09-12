@@ -7,7 +7,7 @@ public:
 	~MyLabel();
 	void setPix(const QPixmap& pixmap);
 	void setId(int id);
-	QPixmap pixmap();
+	QPixmap& pixmap();
 signals:
 	void clicked(int id);
 	

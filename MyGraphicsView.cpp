@@ -16,7 +16,7 @@ MyGraphicsView::~MyGraphicsView()
 
 }
 
-void MyGraphicsView::setPixmap(QPixmap pixmap)
+void MyGraphicsView::setPixmap(const QPixmap &pixmap)
 {
 	item = scene->addPixmap(pixmap);
 	//QGraphicsView::fitInView(item, Qt::KeepAspectRatio);
@@ -33,7 +33,7 @@ if (item!=NULL&&isFirstLoad) {
 
 void MyGraphicsView::wheelEvent(QWheelEvent* event)
 {
-	qDebug() << "view滚轮";
+	//qDebug() << "view滚轮";
 	if (event->modifiers() & Qt::CTRL) {
 		if (event->angleDelta().y() > 0) {
 			qDebug() << "放大";

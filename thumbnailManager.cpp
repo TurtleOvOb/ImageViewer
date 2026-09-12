@@ -42,7 +42,7 @@ MyLabel* thumbnailManager::get_thumbnail(const int&id) const
 	
 }
 
-void thumbnailManager::setCurid(int& id)
+void thumbnailManager::setCurid( int id)
 {
 	this->curId = id;
 	qDebug() << "当前图片id:" << curId;
