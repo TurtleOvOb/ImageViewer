@@ -5,15 +5,12 @@ class MyLabel :public QLabel {
 public:
 	explicit MyLabel(QWidget*parent);
 	~MyLabel();
-	void setPix(const QPixmap& pixmap);
-	void setId(int id);
-	QPixmap& pixmap();
+
 signals:
-	void clicked(int id);
+	void clicked();
 	
 private:
-	int id = 0;
-	QPixmap pix;
+
 	void mouseReleaseEvent(QMouseEvent*event)override;
 	
 };

@@ -17,18 +17,27 @@ qt_standard_project_setup()
 
 set(PROJECT_SOURCES
     main.cpp
-    ImageViewer.ui
-    ImageViewer.h
-    ImageViewer.cpp
-    MyGraphicsView.h
-    MyGraphicsView.cpp
-    MyLabel.h
-    MyLabel.cpp
-    thumbnailManager.h
-    thumbnailManager.cpp
+    main/ImageViewer.ui
+    main/ImageViewer.h
+    main/ImageViewer.cpp
+    Widgets/MyGraphicsView.h
+    Widgets/MyGraphicsView.cpp
+    Widgets/MyLabel.h
+    Widgets/MyLabel.cpp
+    manager/thumbnailManager.h
+    manager/thumbnailManager.cpp
+    manager/imageManager.h
+    manager/imageManager.cpp
 )
 
 qt_add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
+
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+        main
+        Widgets
+        manager
+)
 
 set_target_properties(${PROJECT_NAME}
     PROPERTIES

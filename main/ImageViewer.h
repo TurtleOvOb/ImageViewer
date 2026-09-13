@@ -9,7 +9,7 @@
 #include<qimage.h>
 #include"MyGraphicsView.h"
 #include"thumbnailManager.h"
-
+#include"imageManager.h"
 QT_BEGIN_NAMESPACE
 namespace Ui { class ImageViewerClass; };
 QT_END_NAMESPACE
@@ -25,7 +25,8 @@ public:
 
 private:
     MyGraphicsView* view = nullptr;
-    thumbnailManager* manager=nullptr;
+    thumbnailManager* thumbnails=nullptr;
+ 
     int row=0;
     int col=0;
     Ui::ImageViewerClass *ui;

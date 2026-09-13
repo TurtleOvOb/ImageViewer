@@ -6,7 +6,7 @@ ImageViewer::ImageViewer(QWidget *parent)
 {
     ui->setupUi(this);
     connect(ui->selecFolder, &QPushButton::clicked, this, &ImageViewer::selectFolder);
-    manager = new thumbnailManager();
+    thumbnails = new thumbnailManager();
 
   
 }
@@ -18,11 +18,11 @@ ImageViewer::~ImageViewer()
 //添加缩略图
 void ImageViewer::addPics(QFileInfo fileInfo)
 {
-      
-    MyLabel* label=manager->create_Thumbnail(this,fileInfo.absoluteFilePath());
+  MyLabel* label= thumbnails->create_Thumbnail(this,fileInfo.absoluteFilePath());
+  int id = imageManager::instance()->add_Image(fileInfo.absoluteFilePath());
 
     if (label!=nullptr) {
-        connect(label, &MyLabel::clicked, this, &ImageViewer::switchImage);
+        connect(label, &MyLabel::clicked, this, [this, id] {switchImage(id); });
         if (col >=2) {
             col = 0;
             row++;
@@ -31,12 +31,13 @@ void ImageViewer::addPics(QFileInfo fileInfo)
         col++;
    }
     else {
-        qDebug() << "pixmap为空";
+        qDebug() << "label为空";
     }
 }
 //槽函数：切换workSpace显示的图片
 void ImageViewer::switchImage(int id)
 {
+    qDebug() << id;
     if (view) {
         //qDebug() << "移除view";
         ui->verticalLayout_4->removeWidget(view);
@@ -46,14 +47,14 @@ void ImageViewer::switchImage(int id)
     /*qDebug() << "添加view";*/
     view = new MyGraphicsView(this);
     ui->verticalLayout_4->addWidget(view);
-    manager->setCurid(id);
-    view->setPixmap(manager->get_thumbnail(id)->pixmap());
+    imageManager::instance()->set_CurId(id);
+    view->setPixmap(imageManager::instance()->get_ImageById(id));
 }
 void ImageViewer::on_btnLast_clicked()
 {
-    int lastId = manager->get_curId() - 1;
+    int lastId = imageManager::instance()->get_CurId() - 1;
     if (lastId <0) {
-        qDebug() << "已经是第一张";
+        //qDebug() << "已经是第一张";
         return;
     }
     else {
@@ -63,9 +64,9 @@ void ImageViewer::on_btnLast_clicked()
 }
 void ImageViewer::on_btnNext_clicked()
 {
-    int nextId = manager->get_curId()+1;
-    if (nextId >= manager->get_count()) {
-        qDebug() << "已经是最后一张";
+    int nextId = imageManager::instance()->get_CurId() +1;
+    if (nextId >= imageManager::instance()->get_Count()) {
+        //qDebug() << "已经是最后一张";
         return;
     }
     else {
@@ -82,10 +83,19 @@ void ImageViewer::selectFolder() {
         return;
     }
     QFileInfoList fileInfoList=dir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot);
+    while (QLayoutItem* item = ui->gridLayout->takeAt(0)) {
+        delete item;
+        imageManager::instance()->clear();
+        //thumbnails->clear();
+    }
+    row = 0;
+    col = 0;
+   
     for (QFileInfo info : fileInfoList) {
         QString suffix = info.suffix();
         if (suffix == "jpg" || suffix == "png" || suffix == "svg") {
             addPics(info);
+        
        }
     }
 

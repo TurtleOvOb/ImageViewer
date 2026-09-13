@@ -36,15 +36,12 @@ void MyGraphicsView::wheelEvent(QWheelEvent* event)
 	//qDebug() << "view滚轮";
 	if (event->modifiers() & Qt::CTRL) {
 		if (event->angleDelta().y() > 0) {
-			qDebug() << "放大";
-		 
+			//qDebug() << "放大";
 			this->scale(scaleFactor, scaleFactor);
-		
 		}
 		if (event->angleDelta().y() < 0) {
-			qDebug() << "缩小";
+			//qDebug() << "缩小";
 			this->scale(1.0/scaleFactor, 1.0 / scaleFactor);
-		
 		}
 		event->accept();
 	}
