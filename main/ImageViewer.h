@@ -26,7 +26,7 @@ public:
 private:
     MyGraphicsView* view = nullptr;
     thumbnailManager* thumbnails=nullptr;
- 
+    void switchImage(imageManager::ImageItem item);
     int row=0;
     int col=0;
     Ui::ImageViewerClass *ui;
@@ -35,5 +35,6 @@ private slots:
     void switchImage(int id);
     void on_btnLast_clicked();
     void on_btnNext_clicked();
+    void on_btnRemove_clicked();
 };
 

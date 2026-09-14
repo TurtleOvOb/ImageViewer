@@ -1,6 +1,7 @@
 #pragma once
 #include<qpixmap.h>
 #include<qvector.h>
+#include<qdebug.h>
 class imageManager {
 public:
 	struct ImageItem {
@@ -13,14 +14,15 @@ public:
 	static imageManager* instance();
 	int indexOf(int id)const;
 	int add_Image(const QString&filePath);
-	QPixmap get_ImageById(int id) const;
+	void remove_imageById(int id);
+	QPixmap get_ImageById(int id) ;
 	int get_CurId();
 	int get_Count();
 	void set_CurId(int id);
 	void clear();
 private:
-
 	int nextId = 0;
+	int curIndex = 0;
 	int curId = 0;
 	QVector<ImageItem>image;
 };

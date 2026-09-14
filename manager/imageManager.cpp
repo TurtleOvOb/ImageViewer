@@ -12,6 +12,7 @@ imageManager* imageManager::instance() {
 	return &images;
 
 }
+//根据id查找返回位置
 int imageManager::indexOf(int id)const
 {
 	for (int i = 0; i < image.size(); i++) {
@@ -21,6 +22,7 @@ int imageManager::indexOf(int id)const
 	}
 	return -1;
 }
+//添加图片
 int imageManager::add_Image(const QString& filePath)
 {
 	if (!filePath.isEmpty()) {
@@ -42,13 +44,36 @@ int imageManager::add_Image(const QString& filePath)
 	}
 
 }
-
-QPixmap imageManager::get_ImageById(int id) const
+//根据id+ndexOf移除图片数据
+void imageManager::remove_imageById(int id)
+{
+	int index = indexOf(id);
+	if (index >= 0) {
+		image.removeAt(index);
+		qDebug() << "数据移除成功，索引"<<index;
+		return ;
+	}
+	else {
+		qDebug() << "找不到数据，索引：" << index;
+	}
+}
+//根据id+indexOf函数返回图片数据
+QPixmap imageManager::get_ImageById(int id) 
 {
 	const int index=indexOf(id);
-	return index < 0?QPixmap():image.at(index).pix;
+	if (index < 0) {
+		return QPixmap();
+	}
+	else {
+		curIndex = index;
+		return image.at(index).pix;
+	}
+
+	
 
 }
+
+
 
 int imageManager::get_CurId()
 {
