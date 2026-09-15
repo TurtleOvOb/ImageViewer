@@ -26,7 +26,6 @@ public:
 private:
     MyGraphicsView* view = nullptr;
     thumbnailManager* thumbnails=nullptr;
-    void switchImage(imageManager::ImageItem item);
     int row=0;
     int col=0;
     Ui::ImageViewerClass *ui;

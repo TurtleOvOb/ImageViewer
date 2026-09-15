@@ -12,10 +12,12 @@ public:
 	imageManager();
 	~imageManager();
 	static imageManager* instance();
-	int indexOf(int id)const;
+	int indexOf(int id);
 	int add_Image(const QString&filePath);
 	void remove_imageById(int id);
 	QPixmap get_ImageById(int id) ;
+	int get_nextId();
+	int get_lastId();
 	int get_CurId();
 	int get_Count();
 	void set_CurId(int id);

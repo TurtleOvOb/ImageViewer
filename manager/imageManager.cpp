@@ -13,10 +13,11 @@ imageManager* imageManager::instance() {
 
 }
 //根据id查找返回位置
-int imageManager::indexOf(int id)const
+int imageManager::indexOf(int id)
 {
 	for (int i = 0; i < image.size(); i++) {
 		if (image.at(i).id == id) {
+			curIndex = i;
 			return i;
 		}
 	}
@@ -73,8 +74,18 @@ QPixmap imageManager::get_ImageById(int id)
 
 }
 
-
-
+int imageManager::get_nextId() {
+	int nextIndex = curIndex + 1;
+	if (nextIndex >= 0 && nextIndex < image.size()) {
+		return image.at(nextIndex).id;
+	}
+}
+int imageManager::get_lastId() {
+	int  lastIndex = curIndex - 1;
+	if (lastIndex >= 0 && lastIndex < image.size()) {
+		return image.at(lastIndex).id;
+	}
+}
 int imageManager::get_CurId()
 {
 	return curId;
