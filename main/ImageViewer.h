@@ -32,8 +32,14 @@ private:
 private slots:
     void selectFolder();
     void switchImage(int id);
+    void switchImage(int id,QPixmap pix);
     void on_btnLast_clicked();
     void on_btnNext_clicked();
     void on_btnRemove_clicked();
+    void on_btnInvert_clicked();
+    void on_btnGrayScale_clicked();
+    void on_btnMirror_clicked();
+    void on_btnWithdraw_clicked();
+
 };
 

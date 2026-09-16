@@ -47,6 +47,26 @@ void ImageViewer::switchImage(int id)
     imageManager::instance()->set_CurId(id);
     view->setPixmap(imageManager::instance()->get_ImageById(id));
 }
+void ImageViewer::switchImage(int id,QPixmap pix)
+{
+    if (!pix.isNull()) {
+        qDebug() << "Not Null";
+    }
+    else {
+
+        qDebug() << "Null";
+    }
+    if (view) {
+        ui->verticalLayout_4->removeWidget(view);
+        delete view;
+        view = nullptr;
+    }
+    view = new MyGraphicsView(this);
+    ui->verticalLayout_4->addWidget(view);
+    imageManager::instance()->set_CurId(id);
+    view->setPixmap(pix);
+
+}
 //从文件夹中添加图片
 void ImageViewer::selectFolder() {
     QString folderPath = QFileDialog::getExistingDirectory(this,"选择文件夹","D:/");
@@ -108,4 +128,48 @@ void ImageViewer::on_btnRemove_clicked()
        }
    }
 
+}
+//可能的优化：选中图片前禁止点击这几个按钮
+void ImageViewer::on_btnInvert_clicked()
+{
+    int curId = imageManager::instance()->get_CurId();
+    imageManager::instance()->set_ColInverted(curId,true);
+    QPixmap pix = imageManager::instance()->render(curId);
+
+    if (!pix.isNull()) {
+        qDebug() << "invert success";
+        switchImage(curId, pix);
+    }
+    else {
+        qDebug() << "invert failed";
+    }
+
+   // int curId = imageManager::instance()->get_CurId();
+   //QImage img = imageManager::instance()->get_ImageById(curId).toImage();
+   //if (img.format() != QImage::Format_ARGB32) {
+   //    img = img.convertToFormat(QImage::Format_ARGB32);
+   //}
+   //img.invertPixels();
+   //QPixmap pix = QPixmap::fromImage(img);
+   //if (view) {
+   //    ui->verticalLayout_4->removeWidget(view);
+   //    delete view;
+   //    view = nullptr;
+   //}
+   //view = new MyGraphicsView(this);
+   //ui->verticalLayout_4->addWidget(view);
+   //view->setPixmap(pix);
+}
+
+void ImageViewer::on_btnGrayScale_clicked()
+{
+
+}
+
+void ImageViewer::on_btnMirror_clicked()
+{
+}
+
+void ImageViewer::on_btnWithdraw_clicked()
+{
 }
