@@ -44,6 +44,12 @@ set_target_properties(${PROJECT_NAME}
         WIN32_EXECUTABLE FALSE
 )
 
+if(MSVC)
+    # 统一按 UTF-8 读源码和解释字符串字面量，
+    # 避免中文注释在 GBK 代码页下产生 C4828 警告或乱码
+    target_compile_options(${PROJECT_NAME} PRIVATE /utf-8)
+endif()
+
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
         Qt::Core
