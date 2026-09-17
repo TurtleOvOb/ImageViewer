@@ -224,7 +224,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="btnInvert">
+          <widget class="QCheckBox" name="btnInvert">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
              <horstretch>0</horstretch>
@@ -242,19 +242,31 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="btnGrayScale">
+          <widget class="QCheckBox" name="btnGrayScale">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="font">
             <font>
              <pointsize>12</pointsize>
             </font>
            </property>
            <property name="text">
-            <string>灰度</string>
+            <string>灰度化</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="btnMirror">
+          <widget class="QCheckBox" name="btnMirror">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="font">
             <font>
              <pointsize>12</pointsize>

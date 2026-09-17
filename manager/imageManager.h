@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include<qpixmap.h>
 #include<qvector.h>
 #include<qdebug.h>
@@ -28,6 +28,7 @@ public:
 	QPixmap get_ImageById(int id);
 	QPixmap render(int id);
 	void set_ColInverted(int id, bool colInverted);
+	void set_GrayScaled(int id, bool grayScaled);
 	int get_nextId();
 	int get_lastId();
 	int get_CurId();

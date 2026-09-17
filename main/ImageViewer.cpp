@@ -1,4 +1,4 @@
-﻿#include "ImageViewer.h"
+#include "ImageViewer.h"
 
 ImageViewer::ImageViewer(QWidget *parent)
     : QWidget(parent)
@@ -53,8 +53,8 @@ void ImageViewer::switchImage(int id,QPixmap pix)
         qDebug() << "Not Null";
     }
     else {
-
         qDebug() << "Null";
+        return;
     }
     if (view) {
         ui->verticalLayout_4->removeWidget(view);
@@ -130,10 +130,16 @@ void ImageViewer::on_btnRemove_clicked()
 
 }
 //可能的优化：选中图片前禁止点击这几个按钮
-void ImageViewer::on_btnInvert_clicked()
+void ImageViewer::on_btnInvert_toggled(bool checked)
 {
+
     int curId = imageManager::instance()->get_CurId();
-    imageManager::instance()->set_ColInverted(curId,true);
+    if (checked) {
+        imageManager::instance()->set_ColInverted(curId, true);
+    }
+    else {
+        imageManager::instance()->set_ColInverted(curId, false);
+    }
     QPixmap pix = imageManager::instance()->render(curId);
 
     if (!pix.isNull()) {
@@ -161,12 +167,27 @@ void ImageViewer::on_btnInvert_clicked()
    //view->setPixmap(pix);
 }
 
-void ImageViewer::on_btnGrayScale_clicked()
+void ImageViewer::on_btnGrayScale_toggled(bool checked)
 {
+    int curId = imageManager::instance()->get_CurId();
+    if (checked) {
+        imageManager::instance()->set_GrayScaled(curId, true);
+    }
+    else {
+        imageManager::instance()->set_GrayScaled(curId, false);
+    }
+    QPixmap pix = imageManager::instance()->render(curId);
 
+    if (!pix.isNull()) {
+        qDebug() << "grayScaled success";
+        switchImage(curId, pix);
+    }
+    else {
+        qDebug() << "grayScaled failed";
+    }
 }
 
-void ImageViewer::on_btnMirror_clicked()
+void ImageViewer::on_btnMirror_toggled(bool checked)
 {
 }
 
