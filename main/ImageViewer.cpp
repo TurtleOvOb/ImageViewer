@@ -189,6 +189,22 @@ void ImageViewer::on_btnGrayScale_toggled(bool checked)
 
 void ImageViewer::on_btnMirror_toggled(bool checked)
 {
+    int curId = imageManager::instance()->get_CurId();
+    if (checked) {
+        imageManager::instance()->set_Mirrored(curId, true);
+    }
+    else {
+        imageManager::instance()->set_Mirrored(curId, false);
+    }
+    QPixmap pix = imageManager::instance()->render(curId);
+
+    if (!pix.isNull()) {
+        qDebug() << "mirror success";
+        switchImage(curId, pix);
+    }
+    else {
+        qDebug() << "mirror failed";
+    }
 }
 
 void ImageViewer::on_btnWithdraw_clicked()

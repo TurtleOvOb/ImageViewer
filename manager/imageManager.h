@@ -29,6 +29,7 @@ public:
 	QPixmap render(int id);
 	void set_ColInverted(int id, bool colInverted);
 	void set_GrayScaled(int id, bool grayScaled);
+	void set_Mirrored(int id, bool mirrored);
 	int get_nextId();
 	int get_lastId();
 	int get_CurId();

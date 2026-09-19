@@ -109,7 +109,9 @@ QPixmap imageManager::render(int id)
 		 pix=toGray(img);
 	}
 	if (params.mirrored) {
-
+		img = pix.toImage();
+		img = img.mirrored(true, false);
+		pix = QPixmap::fromImage(img);
 	}
 
 	return pix;
@@ -128,6 +130,12 @@ void imageManager::set_GrayScaled(int id, bool grayScaled)
 	int index = indexOf(id);
 	imgParams& params = image[index].params;
 	params.grayScale = grayScaled;
+}
+//
+void imageManager::set_Mirrored(int id, bool mirrored) {
+	int index = indexOf(id);
+	imgParams& params = image[index].params;
+	params.mirrored = mirrored;
 }
 //获取当前id的下一个id（在数组中的位置）
 int imageManager::get_nextId() {
