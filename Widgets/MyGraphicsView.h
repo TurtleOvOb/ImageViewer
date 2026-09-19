@@ -1,3 +1,4 @@
+#pragma once
 #include<qgraphicsview.h>
 #include<qgraphicsscene.h>
 #include<qpixmap.h>
@@ -15,6 +16,8 @@ private:
 	float scaleFactor = 1.1;
 	QGraphicsScene* scene=nullptr;
 	QGraphicsPixmapItem* item=nullptr;
+	
 	void resizeEvent(QResizeEvent*event)override;
 	void wheelEvent(QWheelEvent*event)override;
+
 };

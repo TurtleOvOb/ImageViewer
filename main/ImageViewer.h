@@ -10,6 +10,8 @@
 #include"MyGraphicsView.h"
 #include"thumbnailManager.h"
 #include"imageManager.h"
+#include<qmenu.h>
+#include<qclipboard.h>
 QT_BEGIN_NAMESPACE
 namespace Ui { class ImageViewerClass; };
 QT_END_NAMESPACE
@@ -24,11 +26,14 @@ public:
     void addPics(QFileInfo fileInfo);
 
 private:
+    void mousePressEvent(QMouseEvent* event)override;
     MyGraphicsView* view = nullptr;
     thumbnailManager* thumbnails=nullptr;
     int row=0;
     int col=0;
     Ui::ImageViewerClass *ui;
+    QMenu* menu = nullptr;
+    QClipboard* borad ;
 private slots:
     void selectFolder();
     void switchImage(int id);
@@ -39,7 +44,9 @@ private slots:
     void on_btnInvert_toggled(bool checked);
     void on_btnGrayScale_toggled(bool checked);
     void on_btnMirror_toggled(bool checked);
+    void on_btnRestore_clicked();
     void on_btnWithdraw_clicked();
-
+    void on_btnSaveAs_clicked();
+    void clipToborad();
 };
 

@@ -1,8 +1,9 @@
-﻿#include"MyGraphicsView.h"
+#include"MyGraphicsView.h"
 
 MyGraphicsView::MyGraphicsView(QWidget* parent):QGraphicsView(parent)
 {
 	scene = new QGraphicsScene(this);
+
 	this->setScene(scene);
 	this->setDragMode(QGraphicsView::ScrollHandDrag);
 	this->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
@@ -34,7 +35,7 @@ if (item!=NULL&&isFirstLoad) {
 void MyGraphicsView::wheelEvent(QWheelEvent* event)
 {
 	//qDebug() << "view滚轮";
-	if (event->modifiers() & Qt::CTRL) {
+	
 		if (event->angleDelta().y() > 0) {
 			//qDebug() << "放大";
 			this->scale(scaleFactor, scaleFactor);
@@ -44,7 +45,9 @@ void MyGraphicsView::wheelEvent(QWheelEvent* event)
 			this->scale(1.0/scaleFactor, 1.0 / scaleFactor);
 		}
 		event->accept();
-	}
+	
 	
 	QGraphicsView::event(event);
 }
+
+

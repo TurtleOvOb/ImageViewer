@@ -60,13 +60,20 @@ int imageManager::add_Image(const QString& filePath)
 
 }
 //id+ndexOf移除图片数据
-void imageManager::remove_imageById(int id)
+int imageManager::remove_imageById(int id)
 {
 	int index = indexOf(id);
 	if (index >= 0) {
 		image.removeAt(index);
 		qDebug() << "数据移除成功，索引"<<index;
-		return ;
+		//removeAt后数据自动前移，不用加
+		if (index < image.size()) {
+			return image[index].id;
+		}
+		else {
+			return -1;
+		}
+	
 	}
 	else {
 		qDebug() << "找不到数据，索引：" << index;
@@ -90,10 +97,14 @@ QPixmap imageManager::get_ImageById(int id)
 //根据图像参数对图像进行处理
 QPixmap imageManager::render(int id)
 {
-	qDebug() << id;
+	//qDebug() << id;
 	int index = indexOf(id);
+	if (index == -1) {
+		qDebug() << "未找到图片";
+		return QPixmap();
+	}
 	imgParams params = image.at(index).params;
-	QPixmap pix = image.at(index).pix;
+	QPixmap pix = image[index].pix;
 	
 	QImage img = pix.toImage();
 	//颜色反转处理
@@ -104,16 +115,23 @@ QPixmap imageManager::render(int id)
             img.invertPixels();
 		    pix = QPixmap::fromImage(img);
 	}
+	//灰度化处理
 	if (params.grayScale) {
+		if (img.format() != QImage::Format_ARGB32) {
+			img = img.convertToFormat(QImage::Format_ARGB32);
+		}
 		 img = pix.toImage();
 		 pix=toGray(img);
 	}
+	//镜像处理
 	if (params.mirrored) {
+		if (img.format() != QImage::Format_ARGB32) {
+			img = img.convertToFormat(QImage::Format_ARGB32);
+		}
 		img = pix.toImage();
 		img = img.mirrored(true, false);
 		pix = QPixmap::fromImage(img);
 	}
-
 	return pix;
 }
 //设置图片颜色反转
@@ -136,6 +154,14 @@ void imageManager::set_Mirrored(int id, bool mirrored) {
 	int index = indexOf(id);
 	imgParams& params = image[index].params;
 	params.mirrored = mirrored;
+}
+imageManager::imgParams imageManager::get_params(int id)
+{
+	int index = indexOf(id);
+	imgParams params = image[index].params;
+	return params;
+
+	
 }
 //获取当前id的下一个id（在数组中的位置）
 int imageManager::get_nextId() {

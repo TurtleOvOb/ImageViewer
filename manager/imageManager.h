@@ -24,12 +24,13 @@ public:
 	int indexOf(int id);
 
 	int add_Image(const QString&filePath);
-	void remove_imageById(int id);
+	int remove_imageById(int id);
 	QPixmap get_ImageById(int id);
 	QPixmap render(int id);
 	void set_ColInverted(int id, bool colInverted);
 	void set_GrayScaled(int id, bool grayScaled);
 	void set_Mirrored(int id, bool mirrored);
+	imgParams get_params(int id);
 	int get_nextId();
 	int get_lastId();
 	int get_CurId();

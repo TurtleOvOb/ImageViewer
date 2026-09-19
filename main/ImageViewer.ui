@@ -190,7 +190,31 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="btn_SaveAs">
+          <widget class="QPushButton" name="btnRestore">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>100</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>还原</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnSaveAs">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
              <horstretch>0</horstretch>
@@ -303,17 +327,9 @@
           </widget>
          </item>
          <item>
-          <widget class="QSpinBox" name="spinBox_Contrast">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-            </font>
+          <widget class="QSlider" name="contrastSlider">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
           </widget>
          </item>

@@ -4,7 +4,17 @@ ImageViewer::ImageViewer(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::ImageViewerClass())
 {
+
     ui->setupUi(this);
+    menu = new QMenu(this);
+    menu->addAction("复制",this,&ImageViewer::clipToborad);
+    borad = QApplication::clipboard();
+    ui->contrastSlider->setRange(0, 100);
+    ui->spinBox_rotation->setRange(-360, 360);
+    ui->btnInvert->setDisabled(true);
+    ui->btnGrayScale->setDisabled(true);
+    ui->btnMirror->setDisabled(true);
+
     connect(ui->selecFolder, &QPushButton::clicked, this, &ImageViewer::selectFolder);
     thumbnails = new thumbnailManager();
 }
@@ -33,39 +43,70 @@ void ImageViewer::addPics(QFileInfo fileInfo)
         qDebug() << "label为空";
     }
 }
+//
+void ImageViewer::mousePressEvent(QMouseEvent* event)
+{
+    if (event->button() == Qt::RightButton) {
+        menu->exec(event->globalPos());
+    }
+    QWidget::mousePressEvent(event);
+}
 //槽函数：切换workSpace显示的图片
 void ImageViewer::switchImage(int id)
 {
-    qDebug() << id;
+    //若果有任何一个参数变化，就不用在这里刷新一次了，直接用switchImage(int id,QPixmap pix)
     if (view) {
         ui->verticalLayout_4->removeWidget(view);
         delete view;
         view = nullptr;
      }
+    imageManager::imgParams params = imageManager::instance()->get_params(id);
+    //神秘bug，如果在这个地方判断参数，在给图像添加任意以下效果时会导致图像删除失败且不断叠加view
     view = new MyGraphicsView(this);
     ui->verticalLayout_4->addWidget(view);
     imageManager::instance()->set_CurId(id);
     view->setPixmap(imageManager::instance()->get_ImageById(id));
+    ui->btnInvert->setDisabled(false);
+    ui->btnGrayScale->setDisabled(false);
+    ui->btnMirror->setDisabled(false);
+    if (params.colInverted) {
+        ui->btnInvert->setChecked(true);
+    }
+    else {
+        ui->btnInvert->setChecked(false);
+    }
+    if (params.grayScale) {
+        ui->btnGrayScale->setChecked(true);
+    }
+    else {
+        ui->btnGrayScale->setChecked(false);
+    }
+    if (params.mirrored) {
+        ui->btnMirror->setChecked(true);
+    }
+    else {
+        ui->btnMirror->setChecked(false);
+    }
+   
+
 }
 void ImageViewer::switchImage(int id,QPixmap pix)
 {
-    if (!pix.isNull()) {
-        qDebug() << "Not Null";
-    }
-    else {
-        qDebug() << "Null";
+    if (pix.isNull()) {
+        qDebug() << "ImageViewer::switchImage pix Null";
         return;
     }
     if (view) {
         ui->verticalLayout_4->removeWidget(view);
         delete view;
         view = nullptr;
+        qDebug() << "delete view 2";
     }
     view = new MyGraphicsView(this);
     ui->verticalLayout_4->addWidget(view);
     imageManager::instance()->set_CurId(id);
     view->setPixmap(pix);
-
+    
 }
 //从文件夹中添加图片
 void ImageViewer::selectFolder() {
@@ -114,6 +155,9 @@ void ImageViewer::on_btnNext_clicked()
 //从布局中移除控件
 void ImageViewer::on_btnRemove_clicked()
 {   //takeAt和removeAt在移除数据后都会使后面的数据往前排，因此都要计算位置
+    ui->btnInvert->setDisabled(true);
+    ui->btnGrayScale->setDisabled(true);
+    ui->btnMirror->setDisabled(true);
    int curId = imageManager::instance()->get_CurId();
    int index= imageManager::instance()->indexOf(curId);
    QLayoutItem*item=ui->gridLayout->takeAt(index);
@@ -121,15 +165,27 @@ void ImageViewer::on_btnRemove_clicked()
    if (item != nullptr) {
        if (QWidget* widget = item->widget()) {
            widget->deleteLater();
-           imageManager::instance()->remove_imageById(curId);
-           delete view;
+           int nextId=imageManager::instance()->remove_imageById(curId);
+           if (nextId != -1) {
+               switchImage(nextId);
+           }
+           else {
+               qDebug() << "已经是最后一张";
+               if (view) {
+                   ui->verticalLayout_4->removeWidget(view);
+                   delete view;
+                   view = nullptr;
+               }
+           }
+ /*          delete view;
            view = new MyGraphicsView(this);
-           ui->verticalLayout_4->addWidget(view);
+           ui->verticalLayout_4->addWidget(view);*/
        }
    }
 
 }
 //可能的优化：选中图片前禁止点击这几个按钮
+//信号槽：图片颜色反转
 void ImageViewer::on_btnInvert_toggled(bool checked)
 {
 
@@ -148,6 +204,7 @@ void ImageViewer::on_btnInvert_toggled(bool checked)
     }
     else {
         qDebug() << "invert failed";
+        return;
     }
 
    // int curId = imageManager::instance()->get_CurId();
@@ -166,7 +223,7 @@ void ImageViewer::on_btnInvert_toggled(bool checked)
    //ui->verticalLayout_4->addWidget(view);
    //view->setPixmap(pix);
 }
-
+//信号槽：图片灰度化
 void ImageViewer::on_btnGrayScale_toggled(bool checked)
 {
     int curId = imageManager::instance()->get_CurId();
@@ -184,9 +241,10 @@ void ImageViewer::on_btnGrayScale_toggled(bool checked)
     }
     else {
         qDebug() << "grayScaled failed";
+        return;
     }
 }
-
+//信号槽：图片镜像反转
 void ImageViewer::on_btnMirror_toggled(bool checked)
 {
     int curId = imageManager::instance()->get_CurId();
@@ -204,9 +262,52 @@ void ImageViewer::on_btnMirror_toggled(bool checked)
     }
     else {
         qDebug() << "mirror failed";
+        return;
     }
 }
-
+//信号槽：操作撤回
 void ImageViewer::on_btnWithdraw_clicked()
 {
+}
+//信号槽：还原
+void ImageViewer::on_btnRestore_clicked()
+{
+    ui->btnInvert->setChecked(false);
+    ui->btnGrayScale->setChecked(false);
+    ui->btnMirror->setChecked(false);
+    ui->contrastSlider->setValue(0);
+    ui->spinBox_rotation->setValue(0);
+}
+//信号槽：另存为
+void ImageViewer::on_btnSaveAs_clicked()
+{
+  QString savePath=  QFileDialog::getSaveFileName(this, "保存文件", "D:/", "图片文件 (*.png *.jpg);;所有文件 (*)");
+  int curId = imageManager::instance()->get_CurId();
+  QPixmap pix=imageManager::instance()->render(curId);
+  if (!savePath.isEmpty()) {
+      if (!pix.save(savePath)) {
+          qDebug() << "异常问题：图片无法保存";
+          return;
+      }
+  }
+  else {
+      qDebug() << "取消保存";
+      return;
+  }
+        
+    
+}
+
+void ImageViewer::clipToborad()
+{
+    int curId = imageManager::instance()->get_CurId();
+        QPixmap pix = imageManager::instance()->render(curId);
+        if (!pix.isNull()) {
+            borad->setPixmap(pix);
+        }
+        else {
+            qDebug() << "图片不存在huoweixuanzhongrnhetupian,无法复制";
+        }
+    
+
 }
