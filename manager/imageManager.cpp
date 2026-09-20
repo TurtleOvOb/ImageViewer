@@ -29,8 +29,10 @@ imageManager* imageManager::instance() {
 //根据id查找返回位置
 int imageManager::indexOf(int id)
 {
+	qDebug() << "查找 last:Current"<<lastIndex<<" :" << curIndex;
 	for (int i = 0; i < image.size(); i++) {
 		if (image.at(i).id == id) {
+			lastIndex = curIndex;
 			curIndex = i;
 			return i;
 		}
@@ -82,7 +84,15 @@ int imageManager::remove_imageById(int id)
 //根据id+indexOf函数返回图片数据
 QPixmap imageManager::get_ImageById(int id) 
 {
-	const int index=indexOf(id);
+
+	int index = 0;
+	if (lastIndex != curIndex) {
+		index = indexOf(id);
+		qDebug() << "imageManager::get_ImageById 查找";
+	}
+	else {
+		index = curIndex;
+	}
 	if (index < 0) {
 		return QPixmap();
 	}
@@ -98,7 +108,14 @@ QPixmap imageManager::get_ImageById(int id)
 QPixmap imageManager::render(int id)
 {
 	//qDebug() << id;
-	int index = indexOf(id);
+	int index = 0;
+	if (lastIndex != curIndex) {
+		index = indexOf(id);
+		qDebug() << "imageManager::render 查找";
+	}
+	else {
+		index = curIndex;
+	}
 	if (index == -1) {
 		qDebug() << "未找到图片";
 		return QPixmap();
@@ -137,7 +154,15 @@ QPixmap imageManager::render(int id)
 //设置图片颜色反转
 void imageManager::set_ColInverted(int id, bool colInverted)
 {
-	int index = indexOf(id);
+	
+	int index = 0;
+	if (lastIndex != curIndex) {
+		index = indexOf(id);
+		qDebug() << "imageManager::set_ColInverted 查找";
+	}
+	else {
+		index = curIndex;
+	}
 	imgParams&params = image[index].params;
 	params.colInverted = colInverted;
 
@@ -145,19 +170,53 @@ void imageManager::set_ColInverted(int id, bool colInverted)
 //
 void imageManager::set_GrayScaled(int id, bool grayScaled)
 {
-	int index = indexOf(id);
+	int index = 0;
+	if (lastIndex != curIndex) {
+		index = indexOf(id);
+		qDebug() << "imageManager::set_GrayScaled 查找";
+	}
+	else {
+		index = curIndex;
+	}
 	imgParams& params = image[index].params;
 	params.grayScale = grayScaled;
 }
 //
 void imageManager::set_Mirrored(int id, bool mirrored) {
-	int index = indexOf(id);
+	int index = 0;
+	if (lastIndex != curIndex) {
+		index = indexOf(id);
+		qDebug() << "imageManager::set_Mirrored 查找";
+	}
+	else {
+		index = curIndex;
+	}
 	imgParams& params = image[index].params;
 	params.mirrored = mirrored;
 }
+//
+void imageManager::set_Contrast(int id, int val)
+{
+	int index = 0;
+	if (lastIndex != curIndex) {
+		index = indexOf(id);
+	}
+	else {
+		index = curIndex;
+	}
+	imgParams& params = image[index].params;
+	params.contrast = val;
+}
+//
 imageManager::imgParams imageManager::get_params(int id)
 {
-	int index = indexOf(id);
+	int index = 0;
+	if (lastIndex != curIndex) {
+		index = indexOf(id);
+	}
+	else {
+		index = curIndex;
+	}
 	imgParams params = image[index].params;
 	return params;
 

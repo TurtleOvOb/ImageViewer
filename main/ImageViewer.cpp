@@ -9,7 +9,8 @@ ImageViewer::ImageViewer(QWidget *parent)
     menu = new QMenu(this);
     menu->addAction("复制",this,&ImageViewer::clipToborad);
     borad = QApplication::clipboard();
-    ui->contrastSlider->setRange(0, 100);
+    ui->contrastSlider->setTracking(true);
+    ui->contrastSlider->setRange(-100, 100);
     ui->spinBox_rotation->setRange(-360, 360);
     ui->btnInvert->setDisabled(true);
     ui->btnGrayScale->setDisabled(true);
@@ -298,6 +299,11 @@ void ImageViewer::on_btnSaveAs_clicked()
     
 }
 
+void ImageViewer::on_contrastSlider_valueChanged(int val)
+{
+    qDebug() << val;
+}
+
 void ImageViewer::clipToborad()
 {
     int curId = imageManager::instance()->get_CurId();
@@ -306,7 +312,7 @@ void ImageViewer::clipToborad()
             borad->setPixmap(pix);
         }
         else {
-            qDebug() << "图片不存在huoweixuanzhongrnhetupian,无法复制";
+            qDebug() << "图片不存在或未选中,无法复制";
         }
     
 

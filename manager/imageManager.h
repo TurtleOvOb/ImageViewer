@@ -30,6 +30,7 @@ public:
 	void set_ColInverted(int id, bool colInverted);
 	void set_GrayScaled(int id, bool grayScaled);
 	void set_Mirrored(int id, bool mirrored);
+	void set_Contrast(int id, int val);
 	imgParams get_params(int id);
 	int get_nextId();
 	int get_lastId();
@@ -39,6 +40,7 @@ public:
 private:
 	int nextId = 0;
 	int curIndex = 0;
+	int lastIndex = 0;//用于减少查找次数
 	int curId = 0;
 	QVector<ImageItem>image;
 };

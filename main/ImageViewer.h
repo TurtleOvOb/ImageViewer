@@ -47,6 +47,7 @@ private slots:
     void on_btnRestore_clicked();
     void on_btnWithdraw_clicked();
     void on_btnSaveAs_clicked();
+    void on_contrastSlider_valueChanged(int val);
     void clipToborad();
 };
 
