@@ -26,6 +26,8 @@ public:
     void addPics(QFileInfo fileInfo);
 
 private:
+    void wkWidgetDisabled(bool con);
+    void fileWidgetDisabled(bool con);
     void mousePressEvent(QMouseEvent* event)override;
     MyGraphicsView* view = nullptr;
     thumbnailManager* thumbnails=nullptr;
@@ -45,9 +47,10 @@ private slots:
     void on_btnGrayScale_toggled(bool checked);
     void on_btnMirror_toggled(bool checked);
     void on_btnRestore_clicked();
-    void on_btnWithdraw_clicked();
     void on_btnSaveAs_clicked();
     void on_contrastSlider_valueChanged(int val);
+    void on_lightnessSlider_valueChanged(int val);
+    void on_spinBox_rotation_valueChanged(int val);
     void clipToborad();
 };
 

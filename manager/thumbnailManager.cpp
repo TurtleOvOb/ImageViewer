@@ -1,4 +1,4 @@
-﻿#include"thumbnailManager.h"
+#include"thumbnailManager.h"
 
 thumbnailManager::thumbnailManager()
 {

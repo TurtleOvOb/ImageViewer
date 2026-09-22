@@ -9,13 +9,16 @@ ImageViewer::ImageViewer(QWidget *parent)
     menu = new QMenu(this);
     menu->addAction("复制",this,&ImageViewer::clipToborad);
     borad = QApplication::clipboard();
+    ui->gridLayout->setAlignment(Qt::AlignTop);
     ui->contrastSlider->setTracking(true);
     ui->contrastSlider->setRange(-100, 100);
+    ui->lightnessSlider->setTracking(true);
+    ui->lightnessSlider->setRange(-100, 100);
     ui->spinBox_rotation->setRange(-360, 360);
-    ui->btnInvert->setDisabled(true);
-    ui->btnGrayScale->setDisabled(true);
-    ui->btnMirror->setDisabled(true);
-
+    wkWidgetDisabled(true);
+    fileWidgetDisabled(true);
+    view = new MyGraphicsView(this);
+    ui->verticalLayout_4->addWidget(view);
     connect(ui->selecFolder, &QPushButton::clicked, this, &ImageViewer::selectFolder);
     thumbnails = new thumbnailManager();
 }
@@ -44,6 +47,23 @@ void ImageViewer::addPics(QFileInfo fileInfo)
         qDebug() << "label为空";
     }
 }
+void ImageViewer::wkWidgetDisabled(bool con)
+{
+    ui->btnInvert->setDisabled(con);
+    ui->btnGrayScale->setDisabled(con);
+    ui->btnMirror->setDisabled(con);
+    ui->contrastSlider->setDisabled(con);
+    ui->lightnessSlider->setDisabled(con);
+    ui->spinBox_rotation->setDisabled(con);
+}
+void ImageViewer::fileWidgetDisabled(bool con)
+{
+    ui->btnNext->setDisabled(con);
+    ui->btnLast->setDisabled(con);
+    ui->btnRemove->setDisabled(con);
+    ui->btnRestore->setDisabled(con);
+    ui->btnSaveAs->setDisabled(con);
+}
 //
 void ImageViewer::mousePressEvent(QMouseEvent* event)
 {
@@ -55,21 +75,14 @@ void ImageViewer::mousePressEvent(QMouseEvent* event)
 //槽函数：切换workSpace显示的图片
 void ImageViewer::switchImage(int id)
 {
+    qDebug() << "准备切换图片，图片id:" << id;
     //若果有任何一个参数变化，就不用在这里刷新一次了，直接用switchImage(int id,QPixmap pix)
-    if (view) {
-        ui->verticalLayout_4->removeWidget(view);
-        delete view;
-        view = nullptr;
-     }
     imageManager::imgParams params = imageManager::instance()->get_params(id);
     //神秘bug，如果在这个地方判断参数，在给图像添加任意以下效果时会导致图像删除失败且不断叠加view
-    view = new MyGraphicsView(this);
-    ui->verticalLayout_4->addWidget(view);
     imageManager::instance()->set_CurId(id);
-    view->setPixmap(imageManager::instance()->get_ImageById(id));
-    ui->btnInvert->setDisabled(false);
-    ui->btnGrayScale->setDisabled(false);
-    ui->btnMirror->setDisabled(false);
+    view->setPixmap(imageManager::instance()->get_ImageById(id),true);
+    wkWidgetDisabled(false);
+    //切换图片时同步参数
     if (params.colInverted) {
         ui->btnInvert->setChecked(true);
     }
@@ -88,7 +101,10 @@ void ImageViewer::switchImage(int id)
     else {
         ui->btnMirror->setChecked(false);
     }
-   
+    //不用判0，valueChanged信号只有在值变化的时候才会发出，判0会导致不触发setValue，不触发setValue会导致值不变，信号就发不出
+        ui->contrastSlider->setValue(params.contrast);
+        ui->lightnessSlider->setValue(params.lightness);
+        ui->spinBox_rotation->setValue(params.rotation);
 
 }
 void ImageViewer::switchImage(int id,QPixmap pix)
@@ -97,21 +113,14 @@ void ImageViewer::switchImage(int id,QPixmap pix)
         qDebug() << "ImageViewer::switchImage pix Null";
         return;
     }
-    if (view) {
-        ui->verticalLayout_4->removeWidget(view);
-        delete view;
-        view = nullptr;
-        qDebug() << "delete view 2";
-    }
-    view = new MyGraphicsView(this);
-    ui->verticalLayout_4->addWidget(view);
     imageManager::instance()->set_CurId(id);
-    view->setPixmap(pix);
+    view->setPixmap(pix,false);
     
 }
 //从文件夹中添加图片
 void ImageViewer::selectFolder() {
     QString folderPath = QFileDialog::getExistingDirectory(this,"选择文件夹","D:/");
+    if (folderPath.isEmpty())return;
     QDir dir(folderPath);
     if (!dir.exists()) {
         qDebug() << "文件夹不存在!";
@@ -119,10 +128,12 @@ void ImageViewer::selectFolder() {
     }
     QFileInfoList fileInfoList=dir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot);
     while (QLayoutItem* item = ui->gridLayout->takeAt(0)) {
-        delete item;
-        imageManager::instance()->clear();
-      
+        if (QWidget* widget = item->widget()) {
+            widget->deleteLater();
+         }
+  
     }
+    imageManager::instance()->clear();
     row = 0;
     col = 0;
    
@@ -130,16 +141,23 @@ void ImageViewer::selectFolder() {
         QString suffix = info.suffix();
         if (suffix == "jpg" || suffix == "png" || suffix == "svg") {
             addPics(info);
-        
        }
     }
+fileWidgetDisabled(false);
+    switchImage(0);
 
 }
 //槽函数：切换上一张
 void ImageViewer::on_btnLast_clicked()
 {
     int lastId = imageManager::instance()->get_lastId();
-    switchImage(lastId);
+    if (lastId != -1) {
+     switchImage(lastId);
+    }
+    else {
+        qDebug() << "已经是第一张";
+        return;
+    }
 
 }
 //槽函数：切换下一张
@@ -149,23 +167,27 @@ void ImageViewer::on_btnNext_clicked()
     //计算公式，index=indexOf(curId); index++/index--;if()....;return image.at(index).id;
     //更改后
     int nextId = imageManager::instance()->get_nextId();
-    switchImage(nextId);
+    if (nextId != -1) {
+        switchImage(nextId);
+    }
+    else {
+        qDebug() << "已经是最后一张";
+        return;
+    }
 
 
 }
 //从布局中移除控件
 void ImageViewer::on_btnRemove_clicked()
 {   //takeAt和removeAt在移除数据后都会使后面的数据往前排，因此都要计算位置
-    ui->btnInvert->setDisabled(true);
-    ui->btnGrayScale->setDisabled(true);
-    ui->btnMirror->setDisabled(true);
+    wkWidgetDisabled(true);
    int curId = imageManager::instance()->get_CurId();
    int index= imageManager::instance()->indexOf(curId);
    QLayoutItem*item=ui->gridLayout->takeAt(index);
    //移除控件，对应的数据以及清空view
    if (item != nullptr) {
        if (QWidget* widget = item->widget()) {
-           widget->deleteLater();
+            widget->deleteLater();
            int nextId=imageManager::instance()->remove_imageById(curId);
            if (nextId != -1) {
                switchImage(nextId);
@@ -173,14 +195,9 @@ void ImageViewer::on_btnRemove_clicked()
            else {
                qDebug() << "已经是最后一张";
                if (view) {
-                   ui->verticalLayout_4->removeWidget(view);
-                   delete view;
-                   view = nullptr;
+                   view->setPixmap(QPixmap());
                }
            }
- /*          delete view;
-           view = new MyGraphicsView(this);
-           ui->verticalLayout_4->addWidget(view);*/
        }
    }
 
@@ -189,7 +206,6 @@ void ImageViewer::on_btnRemove_clicked()
 //信号槽：图片颜色反转
 void ImageViewer::on_btnInvert_toggled(bool checked)
 {
-
     int curId = imageManager::instance()->get_CurId();
     if (checked) {
         imageManager::instance()->set_ColInverted(curId, true);
@@ -198,7 +214,6 @@ void ImageViewer::on_btnInvert_toggled(bool checked)
         imageManager::instance()->set_ColInverted(curId, false);
     }
     QPixmap pix = imageManager::instance()->render(curId);
-
     if (!pix.isNull()) {
         qDebug() << "invert success";
         switchImage(curId, pix);
@@ -207,22 +222,6 @@ void ImageViewer::on_btnInvert_toggled(bool checked)
         qDebug() << "invert failed";
         return;
     }
-
-   // int curId = imageManager::instance()->get_CurId();
-   //QImage img = imageManager::instance()->get_ImageById(curId).toImage();
-   //if (img.format() != QImage::Format_ARGB32) {
-   //    img = img.convertToFormat(QImage::Format_ARGB32);
-   //}
-   //img.invertPixels();
-   //QPixmap pix = QPixmap::fromImage(img);
-   //if (view) {
-   //    ui->verticalLayout_4->removeWidget(view);
-   //    delete view;
-   //    view = nullptr;
-   //}
-   //view = new MyGraphicsView(this);
-   //ui->verticalLayout_4->addWidget(view);
-   //view->setPixmap(pix);
 }
 //信号槽：图片灰度化
 void ImageViewer::on_btnGrayScale_toggled(bool checked)
@@ -266,10 +265,6 @@ void ImageViewer::on_btnMirror_toggled(bool checked)
         return;
     }
 }
-//信号槽：操作撤回
-void ImageViewer::on_btnWithdraw_clicked()
-{
-}
 //信号槽：还原
 void ImageViewer::on_btnRestore_clicked()
 {
@@ -277,6 +272,7 @@ void ImageViewer::on_btnRestore_clicked()
     ui->btnGrayScale->setChecked(false);
     ui->btnMirror->setChecked(false);
     ui->contrastSlider->setValue(0);
+    ui->lightnessSlider->setValue(0);
     ui->spinBox_rotation->setValue(0);
 }
 //信号槽：另存为
@@ -298,12 +294,50 @@ void ImageViewer::on_btnSaveAs_clicked()
         
     
 }
-
+//
 void ImageViewer::on_contrastSlider_valueChanged(int val)
 {
-    qDebug() << val;
+  int curId=imageManager::instance()->get_CurId();
+  imageManager::instance()->set_Contrast(curId, val);
+  QPixmap pix = imageManager::instance()->render(curId);
+  if (!pix.isNull()) {
+      switchImage(curId, pix);
+  }
+  else {
+      qDebug() << "contrast failed";
+      return;
+  }
 }
-
+//
+void ImageViewer::on_lightnessSlider_valueChanged(int val)
+{
+    int curId = imageManager::instance()->get_CurId();
+    imageManager::instance()->set_lightness(curId, val);
+    QPixmap pix = imageManager::instance()->render(curId);
+    if (!pix.isNull()) {
+        switchImage(curId, pix);
+    }
+    else {
+        qDebug() << "lightness failed";
+        return;
+    }
+}
+//
+void ImageViewer::on_spinBox_rotation_valueChanged(int val)
+{
+  
+    int curId = imageManager::instance()->get_CurId();
+    imageManager::instance()->set_rotation(curId, val);
+    QPixmap pix = imageManager::instance()->render(curId);
+    if (!pix.isNull()) {
+        switchImage(curId, pix);
+    }
+    else {
+        qDebug() << "rotate failed";
+        return;
+    }
+}
+//
 void ImageViewer::clipToborad()
 {
     int curId = imageManager::instance()->get_CurId();

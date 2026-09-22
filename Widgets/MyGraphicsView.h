@@ -10,7 +10,7 @@ public:
 	MyGraphicsView(QWidget*parent);
 
 	~MyGraphicsView();
-	void setPixmap(const QPixmap &pixmap);
+	void setPixmap(const QPixmap &pixmap,bool zoomReset=true);
 private:
 	bool isFirstLoad = true;//防止View构建后resizeEvent和滚轮缩放打架
 	float scaleFactor = 1.1;

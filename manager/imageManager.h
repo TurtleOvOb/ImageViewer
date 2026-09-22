@@ -11,6 +11,7 @@ public:
 		bool mirrored = false;//镜像
 		int rotation = 0;//旋转
 		int contrast = 0;//对比度
+		int lightness = 0;//对比度
 	};
 	struct ImageItem {
 		QString filePath;
@@ -31,6 +32,8 @@ public:
 	void set_GrayScaled(int id, bool grayScaled);
 	void set_Mirrored(int id, bool mirrored);
 	void set_Contrast(int id, int val);
+	void set_rotation(int id, int val);
+	void set_lightness(int id, int val);
 	imgParams get_params(int id);
 	int get_nextId();
 	int get_lastId();
@@ -40,7 +43,6 @@ public:
 private:
 	int nextId = 0;
 	int curIndex = 0;
-	int lastIndex = 0;//用于减少查找次数
 	int curId = 0;
 	QVector<ImageItem>image;
 };
