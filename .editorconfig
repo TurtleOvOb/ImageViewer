@@ -1,0 +1,5 @@
+root = true
+
+# 统一用 UTF-8 保存，防止再混进 GBK（MSVC 会因此刷 C4828 警告）
+[*]
+charset = utf-8

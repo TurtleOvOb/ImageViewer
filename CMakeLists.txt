@@ -17,23 +17,38 @@ qt_standard_project_setup()
 
 set(PROJECT_SOURCES
     main.cpp
-    ImageViewer.ui
-    ImageViewer.h
-    ImageViewer.cpp
-    MyGraphicsView.h
-    MyGraphicsView.cpp
-    MyLabel.h
-    MyLabel.cpp
-    thumbnailManager.h
-    thumbnailManager.cpp
+    main/ImageViewer.ui
+    main/ImageViewer.h
+    main/ImageViewer.cpp
+    Widgets/MyGraphicsView.h
+    Widgets/MyGraphicsView.cpp
+    Widgets/MyLabel.h
+    Widgets/MyLabel.cpp
+    manager/thumbnailManager.h
+    manager/thumbnailManager.cpp
+    manager/imageManager.h
+    manager/imageManager.cpp
 )
 
 qt_add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
+
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+        main
+        Widgets
+        manager
+)
 
 set_target_properties(${PROJECT_NAME}
     PROPERTIES
         WIN32_EXECUTABLE FALSE
 )
+
+if(MSVC)
+    # 统一按 UTF-8 读源码和解释字符串字面量，
+    # 避免中文注释在 GBK 代码页下产生 C4828 警告或乱码
+    target_compile_options(${PROJECT_NAME} PRIVATE /utf-8)
+endif()
 
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
