@@ -12,6 +12,7 @@ find_package(Qt${QT_VERSION_MAJOR}
         Core
         Gui
         Widgets
+        Test
 )
 qt_standard_project_setup()
 
@@ -45,8 +46,6 @@ set_target_properties(${PROJECT_NAME}
 )
 
 if(MSVC)
-    # 统一按 UTF-8 读源码和解释字符串字面量，
-    # 避免中文注释在 GBK 代码页下产生 C4828 警告或乱码
     target_compile_options(${PROJECT_NAME} PRIVATE /utf-8)
 endif()
 
@@ -58,3 +57,23 @@ target_link_libraries(${PROJECT_NAME}
 
 )
 
+# ---- 单元测试：只测 imageManager 的数据逻辑，不依赖界面 ----
+enable_testing()
+
+qt_add_executable(
+    test2
+    tests/test2.h
+    tests/test2.cpp
+    manager/imageManager.h
+    manager/imageManager.cpp
+)
+target_include_directories(test2 PRIVATE manager)
+
+set_target_properties(test2 PROPERTIES WIN32_EXECUTABLE FALSE)
+if(MSVC)
+    target_compile_options(test2 PRIVATE /utf-8)
+endif()
+target_link_libraries(test2 PRIVATE Qt::Gui Qt::Test)
+
+add_test(NAME test2 COMMAND test2)
+set_tests_properties(test2 PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")

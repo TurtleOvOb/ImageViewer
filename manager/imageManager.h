@@ -2,9 +2,9 @@
 #include<qpixmap.h>
 #include<qvector.h>
 #include<qdebug.h>
-#include<qobject.h>
-class imageManager :public QObject{
-	Q_OBJECT
+
+class imageManager{
+
 public:
 	//保存参数，方便撤回
 	struct imgParams {
@@ -47,10 +47,5 @@ private:
 	int curIndex = 0;
 	int curId = 0;
 	QVector<ImageItem>image;
-private slots:
-	//void initTestCase();
-	//void firstTest();
-	//void secondTest();
-	//void cleanupTestCase();
-	
+
 };

@@ -86,7 +86,7 @@ int imageManager::add_Image(const QString& filePath)
 	}
 
 }
-//id+ndexOf移除图片数据
+//id+ndexOf移除图片数据,删除后返回后一张图片id
 int imageManager::remove_imageById(int id)
 {
 	
@@ -106,6 +106,7 @@ int imageManager::remove_imageById(int id)
 	}
 	else {
 		qDebug() << "找不到数据，索引：" << index;
+		return -1;
 	}
 }
 //根据id+indexOf函数返回图片数据
@@ -205,6 +206,7 @@ void imageManager::set_Contrast(int id, int val)
 {
 	int index = indexOf(id);
 	imgParams& params = image[index].params;
+	val = qBound(-100, val, 100);
 	params.contrast = val;
 }
 //设置旋转参数
@@ -212,6 +214,7 @@ void imageManager::set_rotation(int id, int val)
 {
 	int index = indexOf(id);
 	imgParams& params = image[index].params;
+	val = qBound(-360, val, 360);
 	params.rotation = val;
 }
 //设置亮度参数
@@ -219,6 +222,7 @@ void imageManager::set_lightness(int id, int val)
 {
 	int index = indexOf(id);
 	imgParams& params = image[index].params;
+	val = qBound(-100, val, 100);
 	params.lightness = val;
 }
 //获取图像参数
