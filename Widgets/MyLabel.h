@@ -5,12 +5,9 @@ class MyLabel :public QLabel {
 public:
 	explicit MyLabel(QWidget*parent);
 	~MyLabel();
-
 signals:
 	void clicked();
-	
 private:
-
 	void mouseReleaseEvent(QMouseEvent*event)override;
 	
 };

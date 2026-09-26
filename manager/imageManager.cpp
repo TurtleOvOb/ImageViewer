@@ -47,13 +47,6 @@ namespace {
 	}
 }
 
-imageManager::imageManager()
-{
-}
-
-imageManager::~imageManager()
-{
-}
 //获取静态实例
 imageManager* imageManager::instance() {
 	static imageManager images;
@@ -96,10 +89,12 @@ int imageManager::add_Image(const QString& filePath)
 //id+ndexOf移除图片数据
 int imageManager::remove_imageById(int id)
 {
+	
 	int index = indexOf(id);
 	if (index >= 0) {
 		image.removeAt(index);
 		qDebug() << "数据移除成功，索引"<<index;
+		qDebug() << "当前image大小" << image.size();
 		//removeAt后数据自动前移，不用加
 		if (index < image.size()) {
 			return image[index].id;
@@ -132,7 +127,6 @@ QPixmap imageManager::get_ImageById(int id)
 //根据图像参数对图像进行处理
 QPixmap imageManager::render(int id)
 {
-	//qDebug() << id;
 	int index = indexOf(id);
 	if (index == -1) {
 		qDebug() << "未找到图片";
@@ -143,10 +137,12 @@ QPixmap imageManager::render(int id)
 	QImage img = pix.toImage();
 	//颜色反转处理
 	if (params.colInverted) {
+	
 		if (img.format() != QImage::Format_ARGB32) {
             img = img.convertToFormat(QImage::Format_ARGB32);
         }
             img.invertPixels();
+			qDebug() << "颜色反转，正在回填";
 		    pix = QPixmap::fromImage(img);
 	}
 	//灰度化处理
@@ -166,7 +162,7 @@ QPixmap imageManager::render(int id)
 		img = img.mirrored(true, false);
 		pix = QPixmap::fromImage(img);
 	}
-	//
+	//对比度+亮度处理
 	if (params.contrast != 0||params.lightness!=0) {
 		if (img.format() != QImage::Format_ARGB32) {
 			img = img.convertToFormat(QImage::Format_ARGB32);
@@ -174,7 +170,7 @@ QPixmap imageManager::render(int id)
 		img = pix.toImage();
 		pix = contrastAndLightness(img,params.contrast,params.lightness);
 	}
-	//
+	//旋转处理
 	if (params.rotation != 0) {
 		if (img.format() != QImage::Format_ARGB32) {
 			img = img.convertToFormat(QImage::Format_ARGB32);
@@ -187,11 +183,9 @@ QPixmap imageManager::render(int id)
 //设置图片颜色反转参数
 void imageManager::set_ColInverted(int id, bool colInverted)
 {
-	
 	int index = indexOf(id);
 	imgParams&params = image[index].params;
 	params.colInverted = colInverted;
-
 }
 //设置灰度化参数
 void imageManager::set_GrayScaled(int id, bool grayScaled)
@@ -203,7 +197,6 @@ void imageManager::set_GrayScaled(int id, bool grayScaled)
 //设置镜像参数
 void imageManager::set_Mirrored(int id, bool mirrored) {
 	int index = indexOf(id);
-
 	imgParams& params = image[index].params;
 	params.mirrored = mirrored;
 }
@@ -217,7 +210,6 @@ void imageManager::set_Contrast(int id, int val)
 //设置旋转参数
 void imageManager::set_rotation(int id, int val)
 {
-	
 	int index = indexOf(id);
 	imgParams& params = image[index].params;
 	params.rotation = val;
@@ -235,8 +227,6 @@ imageManager::imgParams imageManager::get_params(int id)
 	int index = indexOf(id);
 	imgParams params = image[index].params;
 	return params;
-
-	
 }
 //获取当前id的下一个id（在数组中的位置）
 int imageManager::get_nextId() {
@@ -271,12 +261,11 @@ void imageManager::set_CurId(int id)
 }
 //清空图像数据
 void imageManager::clear() {
-	qDebug() << "当前image大小：" << image.size() << "，准备清空";
+	//手动删空后不执行if内部，但任何情况下curId和nextId都应该重置
+	curId = 0;
+	nextId = 0;
 	if (!image.isEmpty()) {
 		image.clear();
-		curId = 0;
-		nextId = 0;
 	}
-
 }
 

@@ -10,8 +10,6 @@ MyGraphicsView::MyGraphicsView(QWidget* parent):QGraphicsView(parent)
 
 }
 
-
-
 MyGraphicsView::~MyGraphicsView()
 {
 
@@ -36,10 +34,9 @@ void MyGraphicsView::setPixmap(const QPixmap &pixmap, bool zoomReset)
 		isFirstLoad = true;
 		fitInView(item, Qt::KeepAspectRatio);
 	}
-
-	//QGraphicsView::fitInView(item, Qt::KeepAspectRatio);
 }
 
+//resizeEvent，主要用于初始化时让图片大小适配view大小
 void MyGraphicsView::resizeEvent(QResizeEvent* event)
 {
 QGraphicsView::resizeEvent(event);
@@ -48,22 +45,16 @@ if (item!=NULL&&isFirstLoad) {
 	isFirstLoad = false;
 }
 }
-
+//滚轮事件，用于缩放图片
 void MyGraphicsView::wheelEvent(QWheelEvent* event)
 {
-	//qDebug() << "view滚轮";
-	
 		if (event->angleDelta().y() > 0) {
-			//qDebug() << "放大";
 			this->scale(scaleFactor, scaleFactor);
 		}
 		if (event->angleDelta().y() < 0) {
-			//qDebug() << "缩小";
 			this->scale(1.0/scaleFactor, 1.0 / scaleFactor);
 		}
 		event->accept();
-	
-	
 	QGraphicsView::event(event);
 }
 

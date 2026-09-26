@@ -5,14 +5,10 @@
 class thumbnailManager {
 
 public:
-	thumbnailManager();
-	~thumbnailManager();
+	thumbnailManager() = default;
+	~thumbnailManager() = default;
 	MyLabel* create_Thumbnail(QWidget*parent,const QString& filePath);
-	//void clear();
-	//int get_curId();
-	//int get_count();
-	//void setCurid(int id);
-	//bool delete_Thumbnail();
+
 private:
 
 };

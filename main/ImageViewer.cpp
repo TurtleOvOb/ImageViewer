@@ -44,9 +44,11 @@ void ImageViewer::addPics(QFileInfo fileInfo)
         col++;
    }
     else {
-        qDebug() << "label为空";
+        QMessageBox::warning(this, "错误", "图片不存在!", QMessageBox::Ok);
+        return;
     }
 }
+//控件启用开关
 void ImageViewer::wkWidgetDisabled(bool con)
 {
     ui->btnInvert->setDisabled(con);
@@ -64,7 +66,7 @@ void ImageViewer::fileWidgetDisabled(bool con)
     ui->btnRestore->setDisabled(con);
     ui->btnSaveAs->setDisabled(con);
 }
-//
+//鼠标点击事件
 void ImageViewer::mousePressEvent(QMouseEvent* event)
 {
     if (event->button() == Qt::RightButton) {
@@ -84,27 +86,66 @@ void ImageViewer::switchImage(int id)
     wkWidgetDisabled(false);
     //切换图片时同步参数
     if (params.colInverted) {
-        ui->btnInvert->setChecked(true);
+        qDebug() << "colInverted同步";
+        if (ui->btnInvert->isChecked()) {
+            emit ui->btnInvert->toggled(true);
+        }
+        else {
+            ui->btnInvert->setChecked(true);
+        }
+   
+        
+       
     }
     else {
+        //emit ui->btnInvert->toggled(false);
         ui->btnInvert->setChecked(false);
     }
     if (params.grayScale) {
-        ui->btnGrayScale->setChecked(true);
+        if (ui->btnGrayScale->isChecked()) {
+            emit ui->btnGrayScale->toggled(true);
+        }
+        else {
+            ui->btnGrayScale->setChecked(true);
+        }
     }
     else {
+        //emit ui->btnGrayScale->toggled(false);
         ui->btnGrayScale->setChecked(false);
     }
     if (params.mirrored) {
-        ui->btnMirror->setChecked(true);
+        if (ui->btnMirror->isChecked()) {
+            emit ui->btnMirror->toggled(true);
+        }
+        else {
+            ui->btnMirror->setChecked(true);
+        }
     }
     else {
+        //emit ui->btnMirror->toggled(false);
         ui->btnMirror->setChecked(false);
     }
     //不用判0，valueChanged信号只有在值变化的时候才会发出，判0会导致不触发setValue，不触发setValue会导致值不变，信号就发不出
+    if (params.contrast == ui->contrastSlider->value()) {
+         emit  ui->contrastSlider->valueChanged(params.contrast);
+     }
+    else{
         ui->contrastSlider->setValue(params.contrast);
+    }
+    if (params.lightness == ui->lightnessSlider->value()) {
+
+        emit  ui->lightnessSlider->valueChanged(params.lightness);
+    }
+    else {
         ui->lightnessSlider->setValue(params.lightness);
+    }  if (params.rotation == ui->spinBox_rotation->value()) {
+        emit  ui->spinBox_rotation->valueChanged(params.rotation);
+    }
+    else {
         ui->spinBox_rotation->setValue(params.rotation);
+    }
+     
+    
 
 }
 void ImageViewer::switchImage(int id,QPixmap pix)
@@ -123,10 +164,14 @@ void ImageViewer::selectFolder() {
     if (folderPath.isEmpty())return;
     QDir dir(folderPath);
     if (!dir.exists()) {
-        qDebug() << "文件夹不存在!";
+        QMessageBox::warning(this, "错误", "文件夹不存在!", QMessageBox::Ok);
         return;
     }
     QFileInfoList fileInfoList=dir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot);
+    if (fileInfoList.isEmpty()) {
+        QMessageBox::warning(this, "警告", "文件夹内不存在图片!", QMessageBox::Ok);
+        return;
+    }
     while (QLayoutItem* item = ui->gridLayout->takeAt(0)) {
         if (QWidget* widget = item->widget()) {
             widget->deleteLater();
@@ -139,11 +184,15 @@ void ImageViewer::selectFolder() {
    
     for (QFileInfo info : fileInfoList) {
         QString suffix = info.suffix();
-        if (suffix == "jpg" || suffix == "png" || suffix == "svg") {
+        if (suffix == "jpg" || suffix == "png" || suffix == "svg" || suffix == "JPG"
+            || suffix == "jpeg" || suffix == "bmp" || suffix == "webp" || suffix == "PNG") {
             addPics(info);
        }
+        else {
+            return;
+        }
     }
-fileWidgetDisabled(false);
+    fileWidgetDisabled(false);
     switchImage(0);
 
 }
@@ -202,12 +251,12 @@ void ImageViewer::on_btnRemove_clicked()
    }
 
 }
-//可能的优化：选中图片前禁止点击这几个按钮
 //信号槽：图片颜色反转
 void ImageViewer::on_btnInvert_toggled(bool checked)
 {
     int curId = imageManager::instance()->get_CurId();
     if (checked) {
+        qDebug() << "colInverted同步触发";
         imageManager::instance()->set_ColInverted(curId, true);
     }
     else {
@@ -215,11 +264,9 @@ void ImageViewer::on_btnInvert_toggled(bool checked)
     }
     QPixmap pix = imageManager::instance()->render(curId);
     if (!pix.isNull()) {
-        qDebug() << "invert success";
         switchImage(curId, pix);
     }
     else {
-        qDebug() << "invert failed";
         return;
     }
 }
@@ -236,11 +283,9 @@ void ImageViewer::on_btnGrayScale_toggled(bool checked)
     QPixmap pix = imageManager::instance()->render(curId);
 
     if (!pix.isNull()) {
-        qDebug() << "grayScaled success";
         switchImage(curId, pix);
     }
     else {
-        qDebug() << "grayScaled failed";
         return;
     }
 }
@@ -257,11 +302,9 @@ void ImageViewer::on_btnMirror_toggled(bool checked)
     QPixmap pix = imageManager::instance()->render(curId);
 
     if (!pix.isNull()) {
-        qDebug() << "mirror success";
         switchImage(curId, pix);
     }
     else {
-        qDebug() << "mirror failed";
         return;
     }
 }
@@ -283,18 +326,17 @@ void ImageViewer::on_btnSaveAs_clicked()
   QPixmap pix=imageManager::instance()->render(curId);
   if (!savePath.isEmpty()) {
       if (!pix.save(savePath)) {
-          qDebug() << "异常问题：图片无法保存";
+          qDebug() << "图片无法保存";
           return;
       }
   }
   else {
-      qDebug() << "取消保存";
       return;
   }
         
     
 }
-//
+//信号槽：对比度变化
 void ImageViewer::on_contrastSlider_valueChanged(int val)
 {
   int curId=imageManager::instance()->get_CurId();
@@ -304,11 +346,10 @@ void ImageViewer::on_contrastSlider_valueChanged(int val)
       switchImage(curId, pix);
   }
   else {
-      qDebug() << "contrast failed";
       return;
   }
 }
-//
+//信号槽：亮度变化
 void ImageViewer::on_lightnessSlider_valueChanged(int val)
 {
     int curId = imageManager::instance()->get_CurId();
@@ -318,11 +359,10 @@ void ImageViewer::on_lightnessSlider_valueChanged(int val)
         switchImage(curId, pix);
     }
     else {
-        qDebug() << "lightness failed";
         return;
     }
 }
-//
+//信号槽：旋转角度变化
 void ImageViewer::on_spinBox_rotation_valueChanged(int val)
 {
   
@@ -333,11 +373,10 @@ void ImageViewer::on_spinBox_rotation_valueChanged(int val)
         switchImage(curId, pix);
     }
     else {
-        qDebug() << "rotate failed";
         return;
     }
 }
-//
+//剪切到粘贴板
 void ImageViewer::clipToborad()
 {
     int curId = imageManager::instance()->get_CurId();
@@ -346,7 +385,7 @@ void ImageViewer::clipToborad()
             borad->setPixmap(pix);
         }
         else {
-            qDebug() << "图片不存在或未选中,无法复制";
+            QMessageBox::warning(this, "错误", "未选中图片或图片不存在!", QMessageBox::Ok);
         }
     
 

@@ -1,14 +1,5 @@
 #include"thumbnailManager.h"
 
-thumbnailManager::thumbnailManager()
-{
-	
-}
-
-thumbnailManager::~thumbnailManager()
-{
-}
-
 MyLabel* thumbnailManager::create_Thumbnail(QWidget* parent,const QString& filePath)
 {
 	QPixmap pixmap(filePath);
@@ -22,11 +13,9 @@ MyLabel* thumbnailManager::create_Thumbnail(QWidget* parent,const QString& fileP
 		return label;
 	}
 	else{
-		qDebug() << "pixmap为空";
 		delete label;
 		return nullptr;
 	}
-
 }
 
 

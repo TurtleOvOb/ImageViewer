@@ -16,9 +16,9 @@ private:
 	float scaleFactor = 1.1;
 	QGraphicsScene* scene=nullptr;
 	QGraphicsPixmapItem* item=nullptr;
-	//保证控件完整缩放至view对的大小
+	//保证控件完整缩放至view的大小
 	void resizeEvent(QResizeEvent*event)override;
-	//
+	//滚轮事件
 	void wheelEvent(QWheelEvent*event)override;
 
 };

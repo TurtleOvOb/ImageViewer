@@ -12,6 +12,7 @@
 #include"imageManager.h"
 #include<qmenu.h>
 #include<qclipboard.h>
+#include<qmessagebox.h>
 QT_BEGIN_NAMESPACE
 namespace Ui { class ImageViewerClass; };
 QT_END_NAMESPACE

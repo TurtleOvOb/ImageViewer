@@ -6,6 +6,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     //QStyle *sty = QStyleFactory::create("fusion");
     //app.setStyle(sty);
+    qSetMessagePattern("[%{file}:%{line}] %{message}");
     ImageViewer window;
     window.show();
     return app.exec();
