@@ -2,6 +2,7 @@
 
 MyLabel* thumbnailManager::create_Thumbnail(QWidget* parent,const QString& filePath)
 {
+
 	QPixmap pixmap(filePath);
 	MyLabel* label = new MyLabel(parent);
 	label->setMinimumSize(100, 100);

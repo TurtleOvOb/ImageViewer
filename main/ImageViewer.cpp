@@ -189,11 +189,17 @@ void ImageViewer::selectFolder() {
             addPics(info);
        }
         else {
-            return;
+            continue;
         }
     }
     fileWidgetDisabled(false);
-    switchImage(0);
+    int index = imageManager::instance()->indexOf(0);
+    if (index > 0) {
+        switchImage(index);
+    }
+    else {
+        return;
+    }
 
 }
 //槽函数：切换上一张
