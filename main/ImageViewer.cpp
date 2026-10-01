@@ -36,24 +36,40 @@ void ImageViewer::addPics(QFileInfo fileInfo)
   
   //int id = imageManager::instance()->add_Image(fileInfo.absoluteFilePath());
   //int id = 0;
+    MyLabel* label = thumbnails->create_Thumbnail(this);
+    //thumbnails->create_Thumbnail(this, thumbnail)
+    if (label != nullptr) {
+        //触发clicked信号时，顺便带上一个已经计算好的id，就像给MyLabel贴上了身份便利贴
+     
+        if (col >= 2) {
+            col = 0;
+            row++;
+        }
+        ui->gridLayout->addWidget(label, row, col, Qt::AlignCenter);
+        col++;
+    }
+    else {
+        QMessageBox::warning(this, "错误", "图片不存在!", QMessageBox::Ok);
+        return;
+    }
+
+
   poolNotifier* notifier = new poolNotifier(this);
-  connect(notifier, &poolNotifier::done, this, [this](int id,const QImage&thumbnail) {
-      //qDebug() << id;
-      MyLabel* label = thumbnails->create_Thumbnail(this, thumbnail);
-      if (label != nullptr) {
-          //触发clicked信号时，顺便带上一个已经计算好的id，就像给MyLabel贴上了身份便利贴
-          connect(label, &MyLabel::clicked, this, [this, id] {switchImage(id); });
-          if (col >= 2) {
-              col = 0;
-              row++;
+  connect(notifier, &poolNotifier::done, this,
+      [this, label](int id, const QImage& thumbnail) {
+          if (thumbnail.isNull()) {
+              ui->gridLayout->removeWidget(label);
+              label->deleteLater();
+              return;
           }
-          ui->gridLayout->addWidget(label, row, col, Qt::AlignCenter);
-          col++;
-      }
-      else {
-          QMessageBox::warning(this, "错误", "图片不存在!", QMessageBox::Ok);
-          return;
-      }
+          label->setPixmap(QPixmap::fromImage(thumbnail));
+          labelById.insert(id, label);
+          connect(label, &MyLabel::clicked, this, [this, id] {switchImage(id); });
+
+          //异步加载：走完循环时数据还没进来，首图在这里选中
+          if (imageManager::instance()->get_CurId() < 0) {
+              switchImage(id);
+          }
       }, Qt::QueuedConnection);
   //qDebug() << id;
   pool.start(new addPicsThread(notifier, fileInfo.absoluteFilePath()));
@@ -186,6 +202,7 @@ void ImageViewer::selectFolder() {
   
     }
     imageManager::instance()->clear();
+    labelById.clear();
     row = 0;
     col = 0;
    
@@ -201,13 +218,7 @@ void ImageViewer::selectFolder() {
         }
     }
     fileWidgetDisabled(false);
-    int index = imageManager::instance()->indexOf(0);
-    if (index > 0) {
-        switchImage(index);
-    }
-    else {
-        return;
-    }
+    //异步加载：走完循环时图片还没解码完，首图在 addPics 的回调里选中
 
 }
 //槽函数：切换上一张
@@ -242,27 +253,26 @@ void ImageViewer::on_btnNext_clicked()
 }
 //从布局中移除控件
 void ImageViewer::on_btnRemove_clicked()
-{   //takeAt和removeAt在移除数据后都会使后面的数据往前排，因此都要计算位置
+{
     wkWidgetDisabled(true);
-   int curId = imageManager::instance()->get_CurId();
-   int index= imageManager::instance()->indexOf(curId);
-   QLayoutItem*item=ui->gridLayout->takeAt(index);
-   //移除控件，对应的数据以及清空view
-   if (item != nullptr) {
-       if (QWidget* widget = item->widget()) {
-            widget->deleteLater();
-           int nextId=imageManager::instance()->remove_imageById(curId);
-           if (nextId != -1) {
-               switchImage(nextId);
-           }
-           else {
-               qDebug() << "已经是最后一张";
-               if (view) {
-                   view->setPixmap(QPixmap());
-               }
-           }
-       }
-   }
+    const int curId = imageManager::instance()->get_CurId();
+
+    //控件按 id 查，不再去布局里数下标
+    if (MyLabel* label = labelById.take(curId)) {
+        ui->gridLayout->removeWidget(label);
+        label->deleteLater();
+    }
+
+    const int nextId = imageManager::instance()->remove_imageById(curId);
+    if (nextId != -1) {
+        switchImage(nextId);
+    }
+    else {
+        imageManager::instance()->set_CurId(-1);
+        if (view) {
+            view->setPixmap(QPixmap());
+        }
+    }
 
 }
 //信号槽：图片颜色反转
@@ -270,7 +280,7 @@ void ImageViewer::on_btnInvert_toggled(bool checked)
 {
     int curId = imageManager::instance()->get_CurId();
     if (checked) {
-        qDebug() << "colInverted同步触发";
+     
         imageManager::instance()->set_ColInverted(curId, true);
     }
     else {
@@ -338,7 +348,7 @@ void ImageViewer::on_btnSaveAs_clicked()
   QPixmap pix=QPixmap::fromImage(imageManager::instance()->render(curId));
   if (!savePath.isEmpty()) {
       if (!pix.save(savePath)) {
-          qDebug() << "图片无法保存";
+          QMessageBox::warning(this, "错误", "图片无法保存!", QMessageBox::Ok);
           return;
       }
   }

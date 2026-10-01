@@ -16,6 +16,7 @@
 #include<qclipboard.h>
 #include<qmessagebox.h>
 #include<qthreadpool.h>
+#include<qhash.h>
 QT_BEGIN_NAMESPACE
 namespace Ui { class ImageViewerClass; };
 QT_END_NAMESPACE
@@ -41,6 +42,7 @@ private:
     QMenu* menu = nullptr;
     QClipboard* borad ;
     QThreadPool pool;
+    QHash<int, MyLabel*> labelById;//id -> 缩略图控件，删除和更新都按 id 查，不再依赖布局下标
 
 private slots:
     void selectFolder();

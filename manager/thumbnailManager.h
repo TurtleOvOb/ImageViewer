@@ -7,6 +7,7 @@ class thumbnailManager {
 public:
 	thumbnailManager() = default;
 	~thumbnailManager() = default;
+	MyLabel* create_Thumbnail(QWidget* parent);
 	MyLabel* create_Thumbnail(QWidget*parent,const QImage&img);
 
 private:

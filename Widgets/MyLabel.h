@@ -3,6 +3,7 @@
 class MyLabel :public QLabel {
 	Q_OBJECT
 public:
+	MyLabel();
 	explicit MyLabel(QWidget*parent);
 	~MyLabel();
 signals:

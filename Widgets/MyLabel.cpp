@@ -1,5 +1,9 @@
 #include "MyLabel.h"
 
+MyLabel::MyLabel()
+{
+}
+
 MyLabel::MyLabel(QWidget* parent):QLabel(parent)
 {
 }

@@ -29,12 +29,11 @@ namespace {
 				const QRgb pixel = rgb[j];//获取rgb数据（只读）
 				rgb[j] = qRgba(contrastMap[qRed(pixel)], contrastMap[qGreen(pixel)], contrastMap[qBlue(pixel)], qAlpha(pixel));//填充回像素
 			}
-		} 
+		}
 		return img;
 	}
 	//旋转
 	QImage rotate(const QImage& src, int rotation) {
-		qDebug() << "2";
 		QImage img = src.convertToFormat(QImage::Format_ARGB32);
 		QTransform t;
 		int width = img.width();
@@ -53,96 +52,78 @@ imageManager* imageManager::instance() {
 	return &images;
 
 }
-//根据id查找返回下标
-int imageManager::indexOf(int id)
-{
-	for (int i = 0; i < image.size(); i++) {
-		if (image.at(i).id == id) {
-			curIndex = i;
-			return i;
-		}
-	}
-	return -1;
-}
-//添加图片
+//添加图片：解码是整条链路里最慢的一步，放在锁外做
 int imageManager::add_Image(const QString& filePath)
 {
-	if (!filePath.isEmpty()) {
-		ImageItem item;
-		item.filePath = filePath;
-		QImage img(filePath);
-	/*	QPixmap pixmap(filePath);*/
-		if (!img.isNull()) {
-			//qDebug() << QThread::currentThreadId() << "上锁";
-			mutex.lock();
-			item.img = img;
-			item.id = nextId++;
-			image.append(item);
-			mutex.unlock();
-					//qDebug() << QThread::currentThreadId() << "解锁";
-			return item.id;
-		}
-		else {
-		
-			return -1;
-		}
-	}
-	else {
-	
-		return false;
-	}
-
-	
-}
-//id+ndexOf移除图片数据,删除后返回后一张图片id
-int imageManager::remove_imageById(int id)
-{
-	
-	int index = indexOf(id);
-	if (index >= 0) {
-		image.removeAt(index);
-		qDebug() << "数据移除成功，索引"<<index;
-		qDebug() << "当前image大小" << image.size();
-		//removeAt后数据自动前移，不用加
-		if (index < image.size()) {
-			return image[index].id;
-		}
-		else {
-			return -1;
-		}
-	
-	}
-	else {
-		qDebug() << "找不到数据，索引：" << index;
+	if (filePath.isEmpty()) {
 		return -1;
 	}
-}
-//根据id+indexOf函数返回图片数据
-QImage imageManager::get_ImageById(int id) 
-{
+	QImage img(filePath);
+	if (img.isNull()) {
+		return -1;
+	}
 
-	int index = indexOf(id);
-	if (index < 0) {
+	QMutexLocker locker(&mutex);
+	const int id = nextId++;
+	ImageItem item;
+	item.filePath = filePath;
+	item.img = img;
+	image.insert(id, item);
+	return id;
+}
+//按 id 移除图片数据，删除后返回后一张图片id（id 升序的下一个，没找到或已是最后一个返回 -1）
+int imageManager::remove_imageById(int id)
+{
+	QMutexLocker locker(&mutex);
+	auto it = image.find(id);
+	if (it == image.end()) {
+		qDebug() << "找不到数据，id：" << id;
+		return -1;
+	}
+	auto next = it;
+	++next;
+	if (next == image.end()) {
+		image.erase(it);
+		return -1;
+	}
+	const int nextId = next.key();
+	image.erase(it);
+	return nextId;
+}
+//根据id返回图片数据
+QImage imageManager::get_ImageById(int id)
+{
+	QMutexLocker locker(&mutex);
+	auto it = image.find(id);
+	if (it == image.end()) {
 		return QImage();
 	}
-	else {
-		return image.at(index).img;
-	}
-
-	
-
+	return it->img;
+}
+//id 是否存在，替代原来靠 indexOf 判 -1 的写法
+bool imageManager::has_Image(int id)
+{
+	QMutexLocker locker(&mutex);
+	return image.contains(id);
 }
 //不要返回QPixmap的引用或指针，这里返回的是一个临时变量，直接值传递，否则就是悬空引用/指针
 //根据图像参数对图像进行处理
 QImage imageManager::render(int id)
 {
-	int index = indexOf(id);
-	if (index == -1) {
-		qDebug() << "未找到图片";
-		return QImage();
+	imgParams params;
+	QImage img;
+	{
+		//锁只用来取一份数据副本。QImage 隐式共享，这份拷贝很便宜
+		QMutexLocker locker(&mutex);
+		auto it = image.find(id);
+		if (it == image.end()) {
+			qDebug() << "未找到图片";
+			return QImage();
+		}
+		params = it->params;
+		img = it->img;
 	}
-	imgParams params = image.at(index).params;
-	QImage img = image[index].img;
+	//下面整段像素处理都在锁外做，不挡着还在加图的 worker 线程
 	//颜色反转处理
 	if (params.colInverted) {
 	
@@ -172,7 +153,6 @@ QImage imageManager::render(int id)
 		if (img.format() != QImage::Format_ARGB32) {
 			img = img.convertToFormat(QImage::Format_ARGB32);
 		}
-
 		img = contrastAndLightness(img,params.contrast,params.lightness);
 	}
 	//旋转处理
@@ -187,102 +167,120 @@ QImage imageManager::render(int id)
 //设置图片颜色反转参数
 void imageManager::set_ColInverted(int id, bool colInverted)
 {
-	int index = indexOf(id);
-	imgParams&params = image[index].params;
-	params.colInverted = colInverted;
+	QMutexLocker locker(&mutex);
+	auto it = image.find(id);
+	if (it == image.end()) {
+		return;
+	}
+	it->params.colInverted = colInverted;
 }
 //设置灰度化参数
 void imageManager::set_GrayScaled(int id, bool grayScaled)
 {
-	int index = indexOf(id);
-	imgParams& params = image[index].params;
-	params.grayScale = grayScaled;
+	QMutexLocker locker(&mutex);
+	auto it = image.find(id);
+	if (it == image.end()) {
+		return;
+	}
+	it->params.grayScale = grayScaled;
 }
 //设置镜像参数
 void imageManager::set_Mirrored(int id, bool mirrored) {
-	int index = indexOf(id);
-	imgParams& params = image[index].params;
-	params.mirrored = mirrored;
+	QMutexLocker locker(&mutex);
+	auto it = image.find(id);
+	if (it == image.end()) {
+		return;
+	}
+	it->params.mirrored = mirrored;
 }
 //设置对比度参数
 void imageManager::set_Contrast(int id, int val)
 {
-	int index = indexOf(id);
-	imgParams& params = image[index].params;
-	val = qBound(-100, val, 100);
-	params.contrast = val;
+	QMutexLocker locker(&mutex);
+	auto it = image.find(id);
+	if (it == image.end()) {
+		return;
+	}
+	it->params.contrast = qBound(-100, val, 100);
 }
 //设置旋转参数
 void imageManager::set_rotation(int id, int val)
 {
-	int index = indexOf(id);
-	imgParams& params = image[index].params;
-	val = qBound(-360, val, 360);
-	params.rotation = val;
+	QMutexLocker locker(&mutex);
+	auto it = image.find(id);
+	if (it == image.end()) {
+		return;
+	}
+	it->params.rotation = qBound(-360, val, 360);
 }
 //设置亮度参数
 void imageManager::set_lightness(int id, int val)
 {
-	int index = indexOf(id);
-	imgParams& params = image[index].params;
-	val = qBound(-100, val, 100);
-	params.lightness = val;
+	QMutexLocker locker(&mutex);
+	auto it = image.find(id);
+	if (it == image.end()) {
+		return;
+	}
+	it->params.lightness = qBound(-100, val, 100);
 }
 //获取图像参数
 imageManager::imgParams imageManager::get_params(int id)
 {
-	int index = indexOf(id);
-	imgParams params = image[index].params;
-	return params;
+	QMutexLocker locker(&mutex);
+	auto it = image.find(id);
+	if (it == image.end()) {
+		return imgParams{};//id 不存在返回一套默认参数
+	}
+	return it->params;
 }
-//获取当前id的下一个id（在数组中的位置）
+//下一个 id（QMap 按 key 升序，比当前 id 大的第一个就是数组顺序上的下一张）
 int imageManager::get_nextId() {
-	int nextIndex = curIndex + 1;
-	if (nextIndex >= 0 && nextIndex < image.size()) {
-		return image.at(nextIndex).id;
-	}
-	else {
+	QMutexLocker locker(&mutex);
+	auto it = image.find(curId);
+	if (it == image.end()) {
 		return -1;
 	}
+	++it;
+	if (it == image.end()) {
+		return -1;
+	}
+	return it.key();
 }
-//获取当前id的上一个id（在数组中的位置）
+//上一个 id
 int imageManager::get_lastId() {
-	int  lastIndex = curIndex - 1;
-
-	if (lastIndex >= 0 && lastIndex < image.size()) {
-		return image.at(lastIndex).id;
-	}
-	else {
+	QMutexLocker locker(&mutex);
+	auto it = image.find(curId);
+	if (it == image.end() || it == image.begin()) {
 		return -1;
 	}
+	--it;
+	return it.key();
+}
+//第一张的 id，替代原来 indexOf(0) 那种"按下标找图"的写法
+int imageManager::get_firstId()
+{
+	QMutexLocker locker(&mutex);
+	if (image.isEmpty()) {
+		return -1;
+	}
+	return image.begin().key();
 }
 //获取当前id
 int imageManager::get_CurId()
 {
+	QMutexLocker locker(&mutex);
 	return curId;
 }
 //设置当前Id
 void imageManager::set_CurId(int id)
 {
-	this->curId = id;
+	QMutexLocker locker(&mutex);
+	curId = id;
 }
 //清空图像数据
 void imageManager::clear() {
-	//手动删空后不执行if内部，但任何情况下curId和nextId都应该重置
-	curId = 0;
+	QMutexLocker locker(&mutex);
+	image.clear();
 	nextId = 0;
-	if (!image.isEmpty()) {
-		image.clear();
-	}
+	curId = -1;
 }
-
-void imageManager::test()
-{
-	//qDebug() <<QThread::currentThreadId()<< "进入test";
-	//mutex.lock();
-	//qDebug() << QThread::currentThreadId() << "加锁";
-	//qDebug() << QThread::currentThreadId() << "业务处理....";
-	//mutex.unlock();
-	//qDebug() << QThread::currentThreadId() << "去锁";
-}
-

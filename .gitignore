@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# 本地临时备份：改代码前手工复制的快照，不进版本库（检查点请用 commit/stash/分支）
+optimized_backup/

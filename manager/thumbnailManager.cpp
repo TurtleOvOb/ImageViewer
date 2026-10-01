@@ -1,5 +1,15 @@
 #include"thumbnailManager.h"
 
+MyLabel* thumbnailManager::create_Thumbnail(QWidget* parent)
+{
+	MyLabel* label = new MyLabel(parent);
+	label->setMinimumSize(100, 100);
+	label->setScaledContents(true);
+	label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+	return label;
+
+}
+
 MyLabel* thumbnailManager::create_Thumbnail(QWidget* parent, const QImage& img)
 {
 
