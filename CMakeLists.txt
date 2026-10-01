@@ -29,6 +29,10 @@ set(PROJECT_SOURCES
     manager/thumbnailManager.cpp
     manager/imageManager.h
     manager/imageManager.cpp
+    class/addPicsThread.h
+    class/addPicsThread.cpp
+    class/poolNotifier.h
+    class/poolNotifier.cpp
 )
 
 qt_add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})

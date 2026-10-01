@@ -37,6 +37,8 @@ private:
     thumbnailManager* thumbnails=nullptr;
     int row=0;
     int col=0;
+    //选完文件夹后，第一张解码完成的图是否已经上屏
+    bool firstImageShown=false;
     Ui::ImageViewerClass *ui;
     QMenu* menu = nullptr;
     QClipboard* borad ;

@@ -34,9 +34,9 @@ QString test2::makeSplitImage(const QString& fileName)
     return img.save(path, "PNG") ? path : QString();
 }
 
-QColor test2::pixelAt(const QPixmap& pix, int x, int y)
+QColor test2::pixelAt(const QImage& img, int x, int y)
 {
-    return pix.toImage().pixelColor(x, y);
+    return img.pixelColor(x, y);
 }
 
 void test2::test_addImage()
@@ -44,8 +44,8 @@ void test2::test_addImage()
     imageManager mgr;
     int imgA= mgr.add_Image(makeSolidImage("imgA.png",QColor(255,0,0)));
     QVERIFY(imgA >= 0);
-    QPixmap pix=mgr.get_ImageById(imgA);
-    QVERIFY(!pix.isNull());
+    QImage img=mgr.get_ImageById(imgA);
+    QVERIFY(!img.isNull());
 
 }
 
@@ -60,8 +60,8 @@ void test2::test_remove_imageById()
     QVERIFY(imgC >= 0);
      imgA=mgr.remove_imageById(imgA);
      QVERIFY(imgA >= 0);
-    QPixmap pixB= mgr.get_ImageById(imgB);
-    QVERIFY(!pixB.isNull());
+    QImage loadedB= mgr.get_ImageById(imgB);
+    QVERIFY(!loadedB.isNull());
 }
 
 void test2::test_switchSeq()
@@ -107,8 +107,8 @@ void test2::test_rotation()
     int imgA=mgr.add_Image(makeSplitImage("imgA"));
     QVERIFY(imgA >= 0);
     mgr.set_rotation(imgA,90);
-    QPixmap pixA=mgr.render(imgA);
-    QColor colA=pixelAt(pixA,7 , 0);
+    QImage rendered=mgr.render(imgA);
+    QColor colA=pixelAt(rendered,7 , 0);
     QCOMPARE(colA.red(), 255);
 }
 
@@ -117,9 +117,9 @@ void test2::test_invert()
     imageManager mgr;
     int imgA = mgr.add_Image(makeSolidImage("imgA", QColor(255, 0, 0)));
     mgr.set_ColInverted(imgA,true);
-   QPixmap pixA=mgr.render(imgA);
-   QVERIFY(!pixA.isNull());
- QColor colA=pixelAt(pixA, 0, 0);
+   QImage rendered=mgr.render(imgA);
+   QVERIFY(!rendered.isNull());
+ QColor colA=pixelAt(rendered, 0, 0);
  QCOMPARE(colA.red(), 255 - 255);
  QCOMPARE(colA.green(), 255 - 0);
  QCOMPARE(colA.blue(), 255 - 0);
@@ -132,8 +132,8 @@ void test2::test_grayScale()
     imageManager mgr;
     int imgA = mgr.add_Image(makeSolidImage("imgA", QColor(255, 0, 0)));
     mgr.set_GrayScaled(imgA,true);
-   QPixmap pixA=mgr.render(imgA);
-   QColor colA = pixelAt(pixA, 0, 0);
+   QImage rendered=mgr.render(imgA);
+   QColor colA = pixelAt(rendered, 0, 0);
    QCOMPARE(colA.red(), colA.green());
    QCOMPARE(colA.green(), colA.blue());
    QVERIFY(colA.red() >= 0);
@@ -145,8 +145,8 @@ void test2::test_mirror()
     imageManager mgr;
     int imgA = mgr.add_Image(makeSplitImage("imgA"));
     mgr.set_Mirrored(imgA, true);
-    QPixmap pixA=mgr.render(imgA);
-   QColor colA=pixelAt(pixA,pixA.width()-1,0);
+    QImage rendered=mgr.render(imgA);
+   QColor colA=pixelAt(rendered,rendered.width()-1,0);
    QCOMPARE(colA.red(),255);
 }
 
@@ -154,10 +154,10 @@ void test2::test_wrongId()
 {
     imageManager mgr;
     int imgA = mgr.add_Image(makeSolidImage("imgA", QColor(255, 0, 0)));
-   QPixmap wrongPix= mgr.get_ImageById(9999);
-   QVERIFY(wrongPix.isNull());
-   QPixmap wrongPix2 = mgr.get_ImageById(-22);
-   QVERIFY(wrongPix.isNull());
+   QImage wrongImg= mgr.get_ImageById(9999);
+   QVERIFY(wrongImg.isNull());
+   QImage wrongImg2 = mgr.get_ImageById(-22);
+   QVERIFY(wrongImg2.isNull());
 }
 
 void test2::test_wrongParam()

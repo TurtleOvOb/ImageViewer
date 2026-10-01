@@ -33,29 +33,29 @@ ImageViewer::~ImageViewer()
 //添加缩略图
 void ImageViewer::addPics(QFileInfo fileInfo)
 {
-  
-  //int id = imageManager::instance()->add_Image(fileInfo.absoluteFilePath());
-  //int id = 0;
   poolNotifier* notifier = new poolNotifier(this);
-  connect(notifier, &poolNotifier::done, this, [this](int id,const QImage&thumbnail) {
-      //qDebug() << id;
+  connect(notifier, &poolNotifier::done, this, [this, notifier](int id, const QImage& thumbnail) {
+      notifier->deleteLater();
+      //控件只能在 GUI 线程建，解码已经在 addPicsThread 里做完了
       MyLabel* label = thumbnails->create_Thumbnail(this, thumbnail);
-      if (label != nullptr) {
-          //触发clicked信号时，顺便带上一个已经计算好的id，就像给MyLabel贴上了身份便利贴
-          connect(label, &MyLabel::clicked, this, [this, id] {switchImage(id); });
-          if (col >= 2) {
-              col = 0;
-              row++;
-          }
-          ui->gridLayout->addWidget(label, row, col, Qt::AlignCenter);
-          col++;
-      }
-      else {
+      if (id < 0 || label == nullptr) {
           QMessageBox::warning(this, "错误", "图片不存在!", QMessageBox::Ok);
           return;
       }
+      //触发clicked信号时，顺便带上一个已经计算好的id，就像给MyLabel贴上了身份便利贴
+      connect(label, &MyLabel::clicked, this, [this, id] {switchImage(id); });
+      if (col >= 2) {
+          col = 0;
+          row++;
+      }
+      ui->gridLayout->addWidget(label, row, col, Qt::AlignCenter);
+      col++;
+      //解码是并行的，谁先出来谁先上屏，保证选完文件夹马上有内容可看
+      if (!firstImageShown) {
+          firstImageShown = true;
+          switchImage(id);
+      }
       }, Qt::QueuedConnection);
-  //qDebug() << id;
   pool.start(new addPicsThread(notifier, fileInfo.absoluteFilePath()));
 }
 //控件启用开关
@@ -188,6 +188,7 @@ void ImageViewer::selectFolder() {
     imageManager::instance()->clear();
     row = 0;
     col = 0;
+    firstImageShown = false;
    
     for (QFileInfo info : fileInfoList) {
         QString suffix = info.suffix();
@@ -201,13 +202,6 @@ void ImageViewer::selectFolder() {
         }
     }
     fileWidgetDisabled(false);
-    int index = imageManager::instance()->indexOf(0);
-    if (index > 0) {
-        switchImage(index);
-    }
-    else {
-        return;
-    }
 
 }
 //槽函数：切换上一张

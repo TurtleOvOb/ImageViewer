@@ -1,6 +1,7 @@
 #pragma once
 #include<qobject.h>
 #include"imageManager.h"
+#include<qimage.h>
 #include<QtTest/qtest.h>
 #include<qtemporarydir.h>
 class test2 :public QObject {
@@ -9,7 +10,7 @@ private:
 	QTemporaryDir *tmpDir;
 	QString makeSolidImage(const QString& fileName, const QColor& color);
 	QString makeSplitImage(const QString& fileName);
-	QColor pixelAt(const QPixmap& pix, int x, int y);
+	QColor pixelAt(const QImage& img, int x, int y);
 private slots:
 	void init();
 	void cleanup();

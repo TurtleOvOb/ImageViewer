@@ -64,35 +64,31 @@ int imageManager::indexOf(int id)
 	}
 	return -1;
 }
-//添加图片
+//添加图片：没有现成 QImage 时按路径解码后入队
 int imageManager::add_Image(const QString& filePath)
 {
-	if (!filePath.isEmpty()) {
-		ImageItem item;
-		item.filePath = filePath;
-		QImage img(filePath);
-	/*	QPixmap pixmap(filePath);*/
-		if (!img.isNull()) {
-			//qDebug() << QThread::currentThreadId() << "上锁";
-			mutex.lock();
-			item.img = img;
-			item.id = nextId++;
-			image.append(item);
-			mutex.unlock();
-					//qDebug() << QThread::currentThreadId() << "解锁";
-			return item.id;
-		}
-		else {
-		
-			return -1;
-		}
+	if (filePath.isEmpty()) {
+		return -1;
 	}
-	else {
-	
-		return false;
+	QImage img(filePath);
+	if (img.isNull()) {
+		return -1;
 	}
-
-	
+	return add_Image(img, filePath);
+}
+//添加图片：只负责入队，解码交给调用方，保证一张图不会解码两次
+int imageManager::add_Image(const QImage& img, const QString& filePath)
+{
+	if (img.isNull() || filePath.isEmpty()) {
+		return -1;
+	}
+	ImageItem item;
+	item.filePath = filePath;
+	item.img = img;
+	QMutexLocker locker(&mutex);
+	item.id = nextId++;
+	image.append(item);
+	return item.id;
 }
 //id+ndexOf移除图片数据,删除后返回后一张图片id
 int imageManager::remove_imageById(int id)

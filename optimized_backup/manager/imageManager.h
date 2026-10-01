@@ -1,5 +1,5 @@
 #pragma once
-#include<qpixmap.h>
+#include<qimage.h>
 #include<qvector.h>
 #include<qdebug.h>
 #include<qmutex.h>
@@ -28,6 +28,8 @@ public:
 	int indexOf(int id);
 
 	int add_Image(const QString&filePath);
+	//img 已经解码好时直接入队，避免同一张图解两次
+	int add_Image(const QImage& img,const QString& filePath);
 	int remove_imageById(int id);
 	QImage get_ImageById(int id);
 	QImage render(int id);

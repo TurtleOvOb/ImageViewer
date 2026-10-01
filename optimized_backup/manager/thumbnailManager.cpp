@@ -1,22 +1,19 @@
 #include"thumbnailManager.h"
+#include<qpixmap.h>
 
-MyLabel* thumbnailManager::create_Thumbnail(QWidget* parent, const QImage& img)
+MyLabel* thumbnailManager::create_Thumbnail(QWidget* parent,const QImage& thumbnail)
 {
-
-	QPixmap pix = QPixmap::fromImage(img);
+	if (thumbnail.isNull()) {
+		return nullptr;
+	}
 	MyLabel* label = new MyLabel(parent);
-	label->setMinimumSize(100, 100);
+	label->setMinimumSize(ThumbnailSize, ThumbnailSize);
 	label->setScaledContents(true);
 	label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	
-	if (!pix.isNull()) {
-		label->setPixmap(pix);
-		return label;
-	}
-	else{
-		delete label;
-		return nullptr;
-	}
+	//QPixmap 只能在 GUI 线程构造，所以转换放在这里而不是解码线程
+	label->setPixmap(QPixmap::fromImage(thumbnail));
+	return label;
 }
 
 
